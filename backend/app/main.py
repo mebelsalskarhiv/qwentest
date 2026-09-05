@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.v1.router import api_router
 from app.models import User, Role, InventoryItem, ProductionOrder
+from app.middleware.audit import AuditMiddleware
 
 
 # Configure logging
@@ -37,6 +38,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # Add Audit Middleware (after CORS, before routing)
+    app.add_middleware(AuditMiddleware)
     
     # Exception handler
     @app.exception_handler(Exception)
