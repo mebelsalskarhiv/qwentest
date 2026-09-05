@@ -1,44 +1,40 @@
 ```
-# Test and coverage files
-.coverage
-htmlcov/
-.coverage.*
-.venv/
-venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-.mypy_cache/
-coverage.xml
-junit.xml
-
 # Dependencies
-node_modules/
-
-# Build outputs
-dist/
-build/
-target/
-*.egg-info/
+backend/app/__pycache__/
 
 # Environment
 .env
 .env.local
-.env.*
+*.env.*
 
-# Editors
+# Logs
+*.log
+
+# Editor/IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *.tmp
 
-# OS
-.DS_Store
-Thumbs.db
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
 
-# Logs
-*.log
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Docker
+.dockerenv
 ```

@@ -1,0 +1,69 @@
+# Caddyfile for Virtuoso MES Multitenancy
+# Single entry point with automatic SSL via Let's Encrypt
+
+{
+    email admin@virtuoso-mes.local
+    storage file_data /data/caddy
+    on_demand_tls {
+        ask http://backend:8000/api/v1/superadmin/tenants/validate-domain
+    }
+}
+
+# Main domain - Demo system and public landing page
+virtuoso-mes.local, www.virtuoso-mes.local {
+    reverse_proxy frontend:3000
+    
+    # API routes to backend
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+    
+    # Static assets
+    handle /static/* {
+        reverse_proxy frontend:3000
+    }
+}
+
+# SuperAdmin panel subdomain
+superadmin.virtuoso-mes.local {
+    reverse_proxy frontend:3000
+    
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+}
+
+# Wildcard for tenant subdomains - Automatic SSL
+*.virtuoso-mes.local {
+    # Extract subdomain from host header
+    @tenant {
+        host_regexp ^([a-z0-9-]+)\.virtuoso-mes\.local$
+    }
+    
+    handle @tenant {
+        reverse_proxy frontend:3000
+        
+        handle /api/* {
+            reverse_proxy backend:8000
+        }
+    }
+    
+    # Custom domains for tenants (on-demand TLS)
+    tls {
+        on_demand
+    }
+}
+
+# Development localhost support
+localhost {
+    reverse_proxy frontend:3000
+    
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+}
+
+# API-only subdomain (for integrations)
+api.virtuoso-mes.local {
+    reverse_proxy backend:8000
+}

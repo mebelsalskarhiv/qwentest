@@ -1,65 +1,162 @@
-# Статус реализации Virtuoso MES
+# Статус реализации Virtuoso MES с мультитенантностью
 
-## ✅ Завершено (Фаза 1 ~75%)
+## ✅ Реализовано (Фаза 1 + Multitenancy)
 
-### Backend
-- **Auth/JWT** — login, register, me, refresh токены
-- **RBAC** — 9 ролей + система разрешений
-- **Модели данных**:
-  - User, Role, AuditLog
-  - InventoryItem, InventoryCategory, StockMovement, Supplier
-  - ProductionOrder, Product, WorkCenter, ProductionOperation, BillOfMaterial, MaterialConsumption
-  - **Employee, Department, Customer, Station** (новое)
-- **API Endpoints**:
-  - `/api/v1/auth/*` — аутентификация
-  - `/api/v1/inventory/*` — склад
-  - `/api/v1/production/*` — производство
-  - `/api/v1/hr/*` — **справочники и станции** (новое)
-- **Docker Compose** — PostgreSQL, backend, frontend
-- **Seed админа** — admin/admin123
+### Backend (FastAPI)
 
-### Frontend
-- **Dashboard** — главная страница со статистикой
-- **Navigation** — меню с 11 пунктами
-- **Страницы**:
-  - `/dashboard` — обзор
-  - `/dashboard/production` — список заказов
-  - `/dashboard/kanban` — **Kanban доска с drag-and-drop** (новое)
-  - `/dashboard/employees` — **сотрудники CRUD** (новое)
-  - `/dashboard/departments` — **отделы CRUD** (новое)
-- **API Client** — hrApi для справочников
+#### Ядро системы
+- [x] Монолитная архитектура с модульной структурой
+- [x] Docker Compose (dev + prod)
+- [x] PostgreSQL с миграциями (Alembic)
+- [x] Auth/JWT — login, register, me, refresh токены
+- [x] RBAC — 9 ролей + система разрешений
+- [x] AuditLog — логирование действий пользователей
 
-## ⏳ В работе
+#### Модели данных
+- [x] **User** — с поддержкой tenant_id
+- [x] **Role, Permission** — RBAC
+- [x] **Tenant** — мультитенантность (статус, биллинг, SSL)
+- [x] **InventoryItem, InventoryCategory, StockMovement, Supplier**
+- [x] **ProductionOrder, Product, WorkCenter, ProductionOperation, BOM, MaterialConsumption**
+- [x] **Employee, Department, Customer, Station**
 
-### Критично для приёмки Фазы 1
-1. **UI Inventory** — страница материалов/поступлений
-2. **UI Users/Roles** — управление пользователями и ролями
-3. **Тесты** — pytest для core/auth/audit
-4. **Audit middleware** — запись изменений
-5. **Demo seed** — демо-данные для Kanban
+#### API Endpoints
+- [x] `/api/v1/auth/*` — аутентификация
+- [x] `/api/v1/inventory/*` — склад (CRUD)
+- [x] `/api/v1/production/*` — производство (CRUD + start/complete)
+- [x] `/api/v1/hr/*` — справочники и станции
+- [x] `/api/v1/users/*` — пользователи
+- [x] `/api/v1/roles/*` — роли
+- [x] `/api/v1/superadmin/tenants/*` — **управление тенантами** (новое)
+  - [x] GET `/` — список тенантов
+  - [x] POST `/` — создание тенанта
+  - [x] GET `/{id}` — детали тенанта
+  - [x] PUT `/{id}` — обновление тенанта
+  - [x] DELETE `/{id}` — удаление тенанта
+  - [x] GET `/stats` — статистика по тенантам
+  - [x] POST `/validate-domain` — валидация для SSL
+  - [x] PUT `/{id}/billing` — обновление биллинга
+  - [x] PUT `/{id}/ssl` — настройка SSL
+  - [x] POST `/{id}/activate` — активация
+  - [x] POST `/{id}/suspend` — приостановка
+
+#### Multitenancy Core
+- [x] **Tenant модель** — статусы, биллинг, SSL, trial
+- [x] **TenantResolver** — разрешение по поддомену/домену
+- [x] **TenantIsolationMiddleware** — изоляция запросов
+- [x] **Dependencies** — get_current_tenant, get_required_tenant
+- [x] **Схемы Pydantic** — TenantCreate, TenantUpdate, TenantResponse, BillingUpdate, SSLConfigUpdate
+
+#### Инфраструктура
+- [x] **Caddy Caddyfile** — reverse proxy с автоматическим SSL
+- [x] **docker-compose.prod.yml** — production конфигурация
+- [x] **.env.example** — шаблон переменных окружения
+- [x] **MULTITENANCY_GUIDE.md** — полная документация
+
+### Frontend (Next.js 14 + MUI v6)
+
+#### Ядро
+- [x] Dashboard со статистикой
+- [x] Navigation — меню с 11 пунктами
+- [x] Zustand auth store с persist
+- [x] Axios client с interceptor для JWT
+- [x] MUI тема и провайдеры
+
+#### Страницы
+- [x] `/` — логин
+- [x] `/dashboard` — обзор
+- [x] `/dashboard/production` — заказы на производство
+- [x] `/dashboard/kanban` — Kanban доска (drag-and-drop)
+- [x] `/dashboard/employees` — сотрудники CRUD
+- [x] `/dashboard/departments` — отделы CRUD
+- [x] `/dashboard/inventory` — материалы CRUD
+- [x] `/dashboard/users` — пользователи CRUD
+- [x] `/dashboard/roles` — роли CRUD
+
+#### Требуется реализовать
+- [ ] `/dashboard/superadmin` — панель суперадмина
+- [ ] `/dashboard/superadmin/tenants` — управление тенантами
+- [ ] `/dashboard/superadmin/billing` — биллинг
+- [ ] `/dashboard/superadmin/stats` — статистика
+- [ ] Public landing page — регистрация демо
+
+### Тесты
+- [x] Конфигурация pytest
+- [ ] Тесты auth module
+- [ ] Тесты inventory module
+- [ ] Тесты multitenancy
+- [ ] Integration tests
+
+### Документация
+- [x] MULTITENANCY_GUIDE.md — руководство по мультитенантности
+- [x] .env.example — переменные окружения
+- [ ] API Documentation (OpenAPI/Swagger) — автогенерация
+- [ ] Developer Guide
+- [ ] Deployment Guide
+
+## 📊 Прогресс
+
+| Компонент | Готовность | Статус |
+|-----------|------------|--------|
+| Backend API | 95% | ✅ Почти готово |
+| Frontend UI | 70% | ⏳ В работе |
+| Multitenancy | 90% | ✅ Готово |
+| Caddy/SSL | 100% | ✅ Готово |
+| Billing System | 80% | ⏳ Требуется Stripe |
+| Тесты | 20% | ❌ Требуются |
+| Документация | 80% | ✅ Хорошо |
+| **Общий прогресс** | **~80%** | **🎯 Фаза 1 + MT** |
+
+## 🎯 Следующие шаги (приоритет)
+
+### Критично для демонстрации
+1. [ ] Создать SuperAdmin UI страницу для управления тенантами
+2. [ ] Добавить seed данные для демо тенанта
+3. [ ] Исправить pytest-asyncio конфигурацию
+4. [ ] Запустить полный integration test
 
 ### Дополнительно
-- Страница Customers
-- Страница Stations
-- Страница Reports
-- Страница Settings
+5. [ ] Public landing page с регистрацией
+6. [ ] Email уведомления (приглашения, биллинг)
+7. [ ] Stripe интеграция для авто-биллинга
+8. [ ] Usage tracking (метрики использования)
 
-## 📊 Прогресс по плану
+## 🔧 Технические долги
 
-| Компонент | Готовность |
-|-----------|------------|
-| Backend API | 80% |
-| Frontend UI | 60% |
-| Kanban MVP | 100% |
-| Справочники | 75% |
-| Тесты | 0% |
-| Документация | 70% |
+- [ ] Добавить cascade delete для Tenant → все модели
+- [ ] Оптимизировать запросы с tenant isolation
+- [ ] Добавить rate limiting на уровне backend
+- [ ] Реализовать soft delete для всех моделей
+- [ ] Добавить audit log для SuperAdmin действий
 
-## 🚀 Следующие шаги
+## 🚀 Развертывание
 
-1. Создать UI Inventory (материалы, поступления)
-2. Создать UI Users/Roles
-3. Написать pytest тесты ядра
-4. Добавить demo seed данные
-5. Интеграционное тестирование
+### Development
+```bash
+docker-compose up -d
+# http://localhost:3000
+# http://localhost:8000/docs
+```
 
+### Production
+```bash
+cp .env.example .env
+# Отредактируйте .env
+docker-compose -f docker-compose.prod.yml up -d
+# https://virtuoso-mes.local
+# https://superadmin.virtuoso-mes.local
+# https://demo.virtuoso-mes.local
+```
+
+## 📝 Заметки
+
+- Мультитенантность реализована на уровне базы данных (tenant_id колонка)
+- Caddy автоматически управляет SSL сертификатами через Let's Encrypt
+- Суперадмин может создавать/удалять тенанты через API
+- Биллинг пока ручной, требуется интеграция со Stripe
+- Demo тенант доступен на поддомене `demo`
+
+---
+**Дата обновления**: 2025-01-XX  
+**Версия**: 1.0.0-multitenant  
+**Статус**: Фаза 1 + Multitenancy завершена (~80%)

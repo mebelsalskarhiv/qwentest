@@ -21,6 +21,11 @@ from app.schemas.hr import (
     CustomerBase, CustomerCreate, CustomerUpdate, CustomerResponse,
     StationBase, StationCreate, StationUpdate, StationResponse
 )
+from app.schemas.tenant import (
+    TenantCreate, TenantUpdate, TenantResponse, TenantListResponse,
+    BillingUpdate, SSLConfigUpdate, TenantStats,
+    TenantStatusEnum, BillingPlanEnum
+)
 
 __all__ = [
     # User
@@ -42,4 +47,8 @@ __all__ = [
     "DepartmentBase", "DepartmentCreate", "DepartmentUpdate", "DepartmentResponse",
     "CustomerBase", "CustomerCreate", "CustomerUpdate", "CustomerResponse",
     "StationBase", "StationCreate", "StationUpdate", "StationResponse",
+    # Multitenancy
+    "TenantCreate", "TenantUpdate", "TenantResponse", "TenantListResponse",
+    "BillingUpdate", "SSLConfigUpdate", "TenantStats",
+    "TenantStatusEnum", "BillingPlanEnum",
 ]

@@ -5,6 +5,7 @@ from app.models.production import (
     ProductionOperation, BillOfMaterial, MaterialConsumption
 )
 from app.models.hr import Employee, Department, Customer, Station
+from app.models.tenant import Tenant, TenantStatus, BillingPlan
 
 __all__ = [
     "User",
@@ -24,4 +25,7 @@ __all__ = [
     "Department",
     "Customer",
     "Station",
+    "Tenant",
+    "TenantStatus",
+    "BillingPlan",
 ]
