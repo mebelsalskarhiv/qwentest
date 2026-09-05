@@ -10,7 +10,9 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.main import app
 
-# Import all models FIRST to ensure they're registered with Base metadata
+# Import ALL models to ensure they're registered with Base metadata
+# Order matters: Tenant must be imported before User (foreign key dependency)
+from app.models.tenant import Tenant
 from app.models.user import User, Role, AuditLog
 from app.models.inventory import InventoryItem, InventoryCategory, StockMovement, Supplier
 from app.models.production import (
@@ -18,7 +20,6 @@ from app.models.production import (
     ProductionOperation, BillOfMaterial, MaterialConsumption
 )
 from app.models.hr import Employee, Department, Customer, Station
-from app.models.tenant import Tenant
 from app.core.database import Base
 
 # Test database URL
