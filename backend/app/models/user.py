@@ -18,8 +18,8 @@ class User(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     
-    # Multitenancy support
-    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
+    # Multitenancy support - make nullable for tests without tenants
+    tenant_id = Column(String(36), ForeignKey("tenants.id", use_alter=True, name="fk_users_tenant_id"), nullable=True, index=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

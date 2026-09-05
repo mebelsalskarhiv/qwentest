@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/virtuoso_mes"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/virtuoso_mes"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "virtuoso_mes"
