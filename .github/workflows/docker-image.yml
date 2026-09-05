@@ -15,7 +15,7 @@ jobs:
 
       # 2. Собираем образы
       - name: Build Docker images
-        run: docker-compose build
+        run: docker compose build
 
       # 3. Запускаем все сервисы в фоне
       - name: Start Docker Compose stack
@@ -28,4 +28,4 @@ jobs:
 
       # 6. Останавливаем и удаляем контейнеры
       - name: Tear down
-        run: docker-compose down
+        run: docker compose down
