@@ -1,0 +1,31 @@
+name: CI Test with Docker Compose
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Клонируем ваш репозиторий
+      - uses: actions/checkout@v3
+
+      # 2. Собираем образы
+      - name: Build Docker images
+        run: docker-compose build
+
+      # 3. Запускаем все сервисы в фоне
+      - name: Start Docker Compose stack
+        run: docker-compose up -d
+
+      # 4. Даем время сервисам инициализироваться
+      - name: Wait for services
+        run: sleep 10
+
+
+      # 6. Останавливаем и удаляем контейнеры
+      - name: Tear down
+        run: docker-compose down
