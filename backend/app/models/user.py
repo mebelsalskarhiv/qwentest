@@ -17,6 +17,10 @@ class User(Base):
     role = Column(SQLEnum(UserRole), default=UserRole.OPERATOR, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
+    
+    # Multitenancy support
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     last_login = Column(DateTime(timezone=True))
@@ -25,6 +29,7 @@ class User(Base):
     audit_logs = relationship("AuditLog", back_populates="user")
     production_orders = relationship("ProductionOrder", back_populates="created_by_user")
     quality_checks = relationship("QualityCheck", back_populates="inspector_user")
+    tenant = relationship("Tenant", back_populates="users")
 
 
 class Role(Base):
