@@ -4,6 +4,7 @@ from app.models.production import (
     ProductionOrder, Product, WorkCenter, 
     ProductionOperation, BillOfMaterial, MaterialConsumption
 )
+from app.models.hr import Employee, Department, Customer, Station
 
 __all__ = [
     "User",
@@ -19,4 +20,8 @@ __all__ = [
     "ProductionOperation",
     "BillOfMaterial",
     "MaterialConsumption",
+    "Employee",
+    "Department",
+    "Customer",
+    "Station",
 ]
