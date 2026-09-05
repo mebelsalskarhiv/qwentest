@@ -112,3 +112,58 @@ export const productionApi = {
   addBOM: (productId: number, data: any) =>
     apiClient.post(`/production/products/${productId}/bom`, data),
 };
+
+// HR & Stations API
+export const hrApi = {
+  // Employees
+  getEmployees: (params?: any) =>
+    apiClient.get('/hr/employees', { params }),
+  
+  getEmployee: (id: number) =>
+    apiClient.get(`/hr/employees/${id}`),
+  
+  createEmployee: (data: any) =>
+    apiClient.post('/hr/employees', data),
+  
+  updateEmployee: (id: number, data: any) =>
+    apiClient.put(`/hr/employees/${id}`, data),
+  
+  deleteEmployee: (id: number) =>
+    apiClient.delete(`/hr/employees/${id}`),
+  
+  // Departments
+  getDepartments: () =>
+    apiClient.get('/hr/departments'),
+  
+  createDepartment: (data: any) =>
+    apiClient.post('/hr/departments', data),
+  
+  updateDepartment: (id: number, data: any) =>
+    apiClient.put(`/hr/departments/${id}`, data),
+  
+  // Customers
+  getCustomers: (params?: any) =>
+    apiClient.get('/hr/customers', { params }),
+  
+  createCustomer: (data: any) =>
+    apiClient.post('/hr/customers', data),
+  
+  updateCustomer: (id: number, data: any) =>
+    apiClient.put(`/hr/customers/${id}`, data),
+  
+  // Stations
+  getStations: (params?: any) =>
+    apiClient.get('/hr/stations', { params }),
+  
+  getStation: (id: number) =>
+    apiClient.get(`/hr/stations/${id}`),
+  
+  createStation: (data: any) =>
+    apiClient.post('/hr/stations', data),
+  
+  updateStation: (id: number, data: any) =>
+    apiClient.put(`/hr/stations/${id}`, data),
+  
+  updateStationStatus: (id: number, status: string) =>
+    apiClient.post(`/hr/stations/${id}/status?status=${status}`),
+};

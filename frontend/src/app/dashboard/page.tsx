@@ -97,7 +97,14 @@ export default function DashboardPage() {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Production', icon: <FactoryIcon />, path: '/dashboard/production' },
+    { text: 'Kanban', icon: <FactoryIcon />, path: '/dashboard/kanban' },
     { text: 'Inventory', icon: <InventoryIcon />, path: '/dashboard/inventory' },
+    { text: 'Employees', icon: <SettingsIcon />, path: '/dashboard/employees' },
+    { text: 'Departments', icon: <SettingsIcon />, path: '/dashboard/departments' },
+    { text: 'Customers', icon: <SettingsIcon />, path: '/dashboard/customers' },
+    { text: 'Stations', icon: <SettingsIcon />, path: '/dashboard/stations' },
+    { text: 'Users', icon: <SettingsIcon />, path: '/dashboard/users' },
+    { text: 'Roles', icon: <SettingsIcon />, path: '/dashboard/roles' },
     { text: 'Reports', icon: <AssessmentIcon />, path: '/dashboard/reports' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/dashboard/settings' },
   ];

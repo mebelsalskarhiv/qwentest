@@ -15,6 +15,12 @@ from app.schemas.production import (
     ProductionOperationBase, ProductionOperationCreate, ProductionOperationUpdate, ProductionOperationResponse,
     BillOfMaterialBase, BillOfMaterialCreate, BillOfMaterialResponse
 )
+from app.schemas.hr import (
+    EmployeeBase, EmployeeCreate, EmployeeUpdate, EmployeeResponse,
+    DepartmentBase, DepartmentCreate, DepartmentUpdate, DepartmentResponse,
+    CustomerBase, CustomerCreate, CustomerUpdate, CustomerResponse,
+    StationBase, StationCreate, StationUpdate, StationResponse
+)
 
 __all__ = [
     # User
@@ -31,4 +37,9 @@ __all__ = [
     "WorkCenterBase", "WorkCenterCreate", "WorkCenterUpdate", "WorkCenterResponse",
     "ProductionOperationBase", "ProductionOperationCreate", "ProductionOperationUpdate", "ProductionOperationResponse",
     "BillOfMaterialBase", "BillOfMaterialCreate", "BillOfMaterialResponse",
+    # HR & Stations
+    "EmployeeBase", "EmployeeCreate", "EmployeeUpdate", "EmployeeResponse",
+    "DepartmentBase", "DepartmentCreate", "DepartmentUpdate", "DepartmentResponse",
+    "CustomerBase", "CustomerCreate", "CustomerUpdate", "CustomerResponse",
+    "StationBase", "StationCreate", "StationUpdate", "StationResponse",
 ]
