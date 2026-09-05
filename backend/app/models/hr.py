@@ -23,9 +23,9 @@ class Employee(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    department = relationship("Department", back_populates="employees")
-    user = relationship("User", back_populates="employee", uselist=False)
-    production_operations = relationship("ProductionOperation", back_populates="operator")
+    department = relationship("Department", back_populates="employees", foreign_keys=[department_id])
+    # user = relationship("User", back_populates="employee", uselist=False)  # TODO: Phase 2
+    # production_operations = relationship("ProductionOperation", back_populates="operator")  # TODO: Phase 2
 
 
 class Department(Base):
@@ -43,7 +43,7 @@ class Department(Base):
 
     # Relationships
     parent = relationship("Department", remote_side=[id], backref="children")
-    employees = relationship("Employee", back_populates="department")
+    employees = relationship("Employee", back_populates="department", foreign_keys="[Employee.department_id]")
     manager = relationship("Employee", foreign_keys=[manager_id])
 
 
@@ -95,10 +95,10 @@ class Station(Base):
 from app.models.production import WorkCenter
 WorkCenter.stations = relationship("Station", back_populates="work_center")
 
-# Add relationship to ProductionOperation
-from app.models.production import ProductionOperation
-ProductionOperation.operator = relationship("Employee", back_populates="production_operations")
+# Add relationship to ProductionOperation (commented out for Phase 1 to avoid circular dependency)
+# from app.models.production import ProductionOperation
+# ProductionOperation.operator = relationship("Employee", back_populates="production_operations")
 
-# Add relationship to User
-from app.models.user import User
-User.employee = relationship("Employee", back_populates="user", uselist=False)
+# Add relationship to User (commented out for Phase 1 to avoid circular dependency issues)
+# from app.models.user import User
+# User.employee = relationship("Employee", back_populates="user", uselist=False)

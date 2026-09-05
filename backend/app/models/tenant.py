@@ -42,7 +42,7 @@ class Tenant(Base):
     letsencrypt_email = Column(String(255), nullable=True)
     
     # Admin & Billing
-    admin_user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    admin_user_id = Column(String(36), ForeignKey("users.id", use_alter=True, name="fk_tenants_admin_user_id"), nullable=True)
     admin_email = Column(String(255), nullable=True)
     
     # Trial & Expiration
@@ -55,7 +55,7 @@ class Tenant(Base):
     
     # Relationships
     admin_user = relationship("User", foreign_keys=[admin_user_id])
-    users = relationship("User", back_populates="tenant")
+    users = relationship("User", back_populates="tenant", foreign_keys="User.tenant_id")
     
     def __repr__(self):
         return f"<Tenant {self.name} ({self.subdomain})>"

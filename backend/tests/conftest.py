@@ -39,13 +39,18 @@ test_async_session_maker = async_sessionmaker(
 @pytest.fixture(scope="function", autouse=True)
 async def setup_test_database():
     """Setup test database before each test function."""
-    # Create all tables
+    # Create all tables - ensure proper ordering with sort_tables
     async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        # Sort tables to respect foreign key dependencies
+        sorted_tables = sorted(Base.metadata.tables.values(), key=lambda t: len(t.foreign_keys))
+        for table in sorted_tables:
+            await conn.run_sync(table.create)
     yield
-    # Drop all tables after test
+    # Drop all tables after test (reverse order)
     async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        sorted_tables = sorted(Base.metadata.tables.values(), key=lambda t: len(t.foreign_keys), reverse=True)
+        for table in sorted_tables:
+            await conn.run_sync(table.drop)
 
 
 async def override_get_db() -> AsyncSession:
