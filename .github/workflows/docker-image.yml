@@ -19,7 +19,7 @@ jobs:
 
       # 3. Запускаем все сервисы в фоне
       - name: Start Docker Compose stack
-        run: docker-compose up -d
+        run: docker compose up -d
 
       # 4. Даем время сервисам инициализироваться
       - name: Wait for services
