@@ -3,13 +3,14 @@ SuperAdmin API endpoints for multitenancy management
 Manage tenants, SSL configuration, billing, and tenant admins
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from typing import List, Optional
 from datetime import datetime, timedelta
 import uuid
 
 from app.core.database import get_db
-from app.core.security import get_current_superuser
+from app.services.auth import get_current_user, get_current_active_superuser as get_current_superuser
 from app.models.tenant import Tenant, TenantStatus, BillingPlan
 from app.models.user import User
 from app.schemas.tenant import (
@@ -27,18 +28,32 @@ router = APIRouter(prefix="/tenants", tags=["superadmin-tenants"])
 
 @router.get("/stats", response_model=TenantStats)
 async def get_tenant_stats(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Get overall tenant statistics (SuperAdmin only)"""
-    total_tenants = db.query(Tenant).count()
-    active_tenants = db.query(Tenant).filter(Tenant.status == TenantStatus.ACTIVE).count()
-    pending_tenants = db.query(Tenant).filter(Tenant.status == TenantStatus.PENDING).count()
-    suspended_tenants = db.query(Tenant).filter(Tenant.status == TenantStatus.SUSPENDED).count()
-    trial_tenants = db.query(Tenant).filter(Tenant.status == TenantStatus.TRIAL).count()
+    
+    # Count tenants by status
+    total_tenants = (await db.execute(select(func.count(Tenant.id)))).scalar() or 0
+    
+    active_tenants = (await db.execute(
+        select(func.count(Tenant.id)).where(Tenant.status == TenantStatus.ACTIVE)
+    )).scalar() or 0
+    
+    pending_tenants = (await db.execute(
+        select(func.count(Tenant.id)).where(Tenant.status == TenantStatus.PENDING)
+    )).scalar() or 0
+    
+    suspended_tenants = (await db.execute(
+        select(func.count(Tenant.id)).where(Tenant.status == TenantStatus.SUSPENDED)
+    )).scalar() or 0
+    
+    trial_tenants = (await db.execute(
+        select(func.count(Tenant.id)).where(Tenant.status == TenantStatus.TRIAL)
+    )).scalar() or 0
     
     # Count users across all tenants
-    total_users = db.query(User).count()
+    total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0
     
     # Calculate MRR (simplified - would integrate with payment provider in production)
     plan_prices = {
@@ -48,10 +63,12 @@ async def get_tenant_stats(
         BillingPlan.ENTERPRISE: 299.0
     }
     
-    revenue_mrr = sum(
-        plan_prices.get(t.billing_plan, 0) 
-        for t in db.query(Tenant).filter(Tenant.status == TenantStatus.ACTIVE).all()
+    result = await db.execute(
+        select(Tenant.billing_plan).where(Tenant.status == TenantStatus.ACTIVE)
     )
+    active_tenants_list = result.scalars().all()
+    
+    revenue_mrr = sum(plan_prices.get(plan, 0) for plan in active_tenants_list)
     
     return TenantStats(
         total_tenants=total_tenants,
@@ -65,7 +82,7 @@ async def get_tenant_stats(
 
 
 @router.post("/validate-domain")
-async def validate_domain_for_ssl(request: Request, db: Session = Depends(get_db)):
+async def validate_domain_for_ssl(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Validate domain for on-demand TLS (used by Caddy)
     Returns 200 if domain is allowed, 403 otherwise
@@ -75,11 +92,14 @@ async def validate_domain_for_ssl(request: Request, db: Session = Depends(get_db
     domain = query_params.get("domain", host)
     
     # Check if domain belongs to an active tenant
-    tenant = db.query(Tenant).filter(
-        (Tenant.subdomain + ".virtuoso-mes.local" == domain) |
-        (Tenant.custom_domain == domain) |
-        (Tenant.subdomain == domain.split('.')[0])
-    ).first()
+    result = await db.execute(
+        select(Tenant).where(
+            (Tenant.subdomain + ".virtuoso-mes.local" == domain) |
+            (Tenant.custom_domain == domain) |
+            (Tenant.subdomain == domain.split('.')[0])
+        )
+    )
+    tenant = result.scalar_one_or_none()
     
     if tenant and tenant.is_active and tenant.ssl_enabled:
         return {"valid": True, "tenant_id": tenant.id}
@@ -99,17 +119,25 @@ async def list_tenants(
     skip: int = 0,
     limit: int = 100,
     status_filter: Optional[TenantStatus] = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """List all tenants (SuperAdmin only)"""
-    query = db.query(Tenant)
+    query = select(Tenant)
     
     if status_filter:
-        query = query.filter(Tenant.status == status_filter)
+        query = query.where(Tenant.status == status_filter)
     
-    total = query.count()
-    tenants = query.offset(skip).limit(limit).all()
+    # Get total count
+    count_query = select(func.count(Tenant.id))
+    if status_filter:
+        count_query = count_query.where(Tenant.status == status_filter)
+    total = (await db.execute(count_query)).scalar() or 0
+    
+    # Get paginated results
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
+    tenants = result.scalars().all()
     
     return TenantListResponse(
         tenants=[TenantResponse.from_orm(t) for t in tenants],
@@ -123,15 +151,18 @@ async def list_tenants(
 async def create_tenant(
     tenant_data: TenantCreate,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Create a new tenant (SuperAdmin only)"""
     # Check if subdomain already exists
-    existing = db.query(Tenant).filter(
-        (Tenant.subdomain == tenant_data.subdomain) |
-        (Tenant.custom_domain == tenant_data.custom_domain)
-    ).first()
+    result = await db.execute(
+        select(Tenant).where(
+            (Tenant.subdomain == tenant_data.subdomain) |
+            (Tenant.custom_domain == tenant_data.custom_domain)
+        )
+    )
+    existing = result.scalar_one_or_none()
     
     if existing:
         raise HTTPException(
@@ -154,8 +185,8 @@ async def create_tenant(
     )
     
     db.add(tenant)
-    db.commit()
-    db.refresh(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     
     # Create admin user if provided
     if tenant_data.admin_email and tenant_data.admin_password:
@@ -172,8 +203,8 @@ async def create_tenant(
         )
         tenant.admin_user_id = admin_user.id
         db.add(admin_user)
-        db.commit()
-        db.refresh(tenant)
+        await db.commit()
+        await db.refresh(tenant)
     
     return TenantResponse.from_orm(tenant)
 
@@ -181,11 +212,12 @@ async def create_tenant(
 @router.get("/{tenant_id}", response_model=TenantResponse)
 async def get_tenant(
     tenant_id: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Get tenant details (SuperAdmin only)"""
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -198,11 +230,12 @@ async def get_tenant(
 async def update_tenant(
     tenant_id: str,
     tenant_data: TenantUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Update tenant details (SuperAdmin only)"""
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -213,8 +246,8 @@ async def update_tenant(
     for field, value in update_data.items():
         setattr(tenant, field, value)
     
-    db.commit()
-    db.refresh(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     return TenantResponse.from_orm(tenant)
 
 
@@ -222,11 +255,12 @@ async def update_tenant(
 async def delete_tenant(
     tenant_id: str,
     soft_delete: bool = True,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Delete a tenant (SuperAdmin only) - CASCADE deletes all tenant data"""
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -235,11 +269,11 @@ async def delete_tenant(
     
     if soft_delete:
         tenant.status = TenantStatus.SUSPENDED
-        db.commit()
+        await db.commit()
     else:
         # Hard delete - cascade will handle related records
-        db.delete(tenant)
-        db.commit()
+        await db.delete(tenant)
+        await db.commit()
     
     return None
 
@@ -248,11 +282,12 @@ async def delete_tenant(
 async def update_tenant_billing(
     tenant_id: str,
     billing_data: BillingUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Update tenant billing plan and subscription (SuperAdmin only)"""
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -268,8 +303,8 @@ async def update_tenant_billing(
     if billing_data.extend_trial_days:
         tenant.trial_ends_at = datetime.utcnow() + timedelta(days=billing_data.extend_trial_days)
     
-    db.commit()
-    db.refresh(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     return TenantResponse.from_orm(tenant)
 
 
@@ -277,11 +312,12 @@ async def update_tenant_billing(
 async def configure_tenant_ssl(
     tenant_id: str,
     ssl_data: SSLConfigUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Configure SSL/Let's Encrypt for tenant (SuperAdmin only)"""
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -294,19 +330,20 @@ async def configure_tenant_ssl(
     # Note: Actual certificate generation happens via Caddy automation
     # This just updates the database flags
     
-    db.commit()
-    db.refresh(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     return TenantResponse.from_orm(tenant)
 
 
 @router.post("/{tenant_id}/activate", response_model=TenantResponse)
 async def activate_tenant(
     tenant_id: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Activate a pending tenant (SuperAdmin only)"""
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -314,8 +351,8 @@ async def activate_tenant(
         )
     
     tenant.status = TenantStatus.ACTIVE
-    db.commit()
-    db.refresh(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     return TenantResponse.from_orm(tenant)
 
 
@@ -323,11 +360,12 @@ async def activate_tenant(
 async def suspend_tenant(
     tenant_id: str,
     reason: Optional[str] = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
     """Suspend a tenant (SuperAdmin only)"""
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -336,6 +374,6 @@ async def suspend_tenant(
     
     tenant.status = TenantStatus.SUSPENDED
     # Could store reason in a separate field or audit log
-    db.commit()
-    db.refresh(tenant)
+    await db.commit()
+    await db.refresh(tenant)
     return TenantResponse.from_orm(tenant)
