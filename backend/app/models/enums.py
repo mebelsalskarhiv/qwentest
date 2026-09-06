@@ -53,3 +53,17 @@ class Permission(str, Enum):
     # Admin
     ADMIN_ACCESS = "admin:access"
     SYSTEM_CONFIG = "system:config"
+
+
+class ActionType(str, Enum):
+    """Audit log action types."""
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    LOGIN = "login"
+    LOGOUT = "logout"
+    VIEW = "view"
+    EXPORT = "export"
+    IMPORT = "import"
+    APPROVE = "approve"
+    REJECT = "reject"
