@@ -31,7 +31,21 @@ async def seed_demo_data():
     async with async_session_maker() as session:
         print("🌱 Начинаем генерацию демо-данных...")
         
-        # 1. Создаем демо-тенанта
+        # 1. Создаем супер-админа
+        superadmin = User(
+            email="superadmin@virtuoso.com",
+            username="superadmin",
+            full_name="Super Administrator",
+            hashed_password=get_password_hash("admin123"),
+            is_superuser=True,
+            is_active=True,
+            role=UserRole.SUPER_ADMIN,
+        )
+        session.add(superadmin)
+        await session.flush()
+        print(f"✅ Создан SuperAdmin: {superadmin.username}")
+        
+        # 2. Создаем демо-тенанта
         tenant = Tenant(
             name="Demo Company",
             subdomain="demo",
@@ -45,7 +59,22 @@ async def seed_demo_data():
         await session.flush()
         print(f"✅ Создан тенант: {tenant.name} (ID: {tenant.id})")
         
-        # 2. Создаем категории материалов
+        # 3. Создаем админа тенанта
+        admin_user = User(
+            email="admin@virtuoso.com",
+            username="admin",
+            full_name="Tenant Admin",
+            hashed_password=get_password_hash("admin123"),
+            is_superuser=False,
+            is_active=True,
+            role=UserRole.TENANT_ADMIN,
+            tenant_id=tenant.id,
+        )
+        session.add(admin_user)
+        await session.flush()
+        print(f"✅ Создан Tenant Admin: {admin_user.username}")
+        
+        # 4. Создаем категории материалов
         categories_data = [
             ("Raw Materials", "Сырье и основные материалы"),
             ("Components", "Компоненты и запчасти"),
@@ -62,7 +91,7 @@ async def seed_demo_data():
             categories[name] = cat
         print(f"✅ Создано {len(categories)} категорий материалов")
         
-        # 3. Создаем поставщиков
+        # 5. Создаем поставщиков
         suppliers_data = [
             ("MetalCorp Inc.", "metal@corp.com", "+1-555-0101", "Поставщик металла"),
             ("PlasticWorld", "info@plasticworld.com", "+1-555-0102", "Пластиковые компоненты"),
@@ -85,7 +114,7 @@ async def seed_demo_data():
             suppliers[name] = supplier
         print(f"✅ Создано {len(suppliers)} поставщиков")
         
-        # 4. Создаем материалы
+        # 6. Создаем материалы
         materials_data = [
             ("Steel Sheet 2mm", "Raw Materials", "кг", Decimal("2.50"), 500, 100),
             ("Aluminum Rod 10mm", "Raw Materials", "м", Decimal("5.75"), 200, 50),
@@ -118,7 +147,7 @@ async def seed_demo_data():
             items[name] = item
         print(f"✅ Создано {len(items)} материалов")
         
-        # 5. Создаем отделы
+        # 7. Создаем отделы
         departments_data = [
             "Production",
             "Quality Control",
@@ -136,7 +165,7 @@ async def seed_demo_data():
             depts[name] = dept
         print(f"✅ Создано {len(depts)} отделов")
         
-        # 6. Создаем сотрудников
+        # 8. Создаем сотрудников
         employees_data = [
             ("John", "Smith", "Operator", "Production"),
             ("Maria", "Garcia", "Senior Operator", "Production"),
@@ -165,7 +194,7 @@ async def seed_demo_data():
             employees[f"{first} {last}"] = emp
         print(f"✅ Создано {len(employees)} сотрудников")
         
-        # 7. Создаем рабочих центры
+        # 9. Создаем рабочие центры
         workcenters_data = [
             ("CNC Machining", "CNC станки для обработки металла"),
             ("Assembly Line A", "Линия сборки продукции A"),
@@ -188,7 +217,7 @@ async def seed_demo_data():
             workcenters[name] = wc
         print(f"✅ Создано {len(workcenters)} рабочих центров")
         
-        # 8. Создаем станции
+        # 10. Создаем станции
         stations_data = [
             ("Station-001", "CNC Machining"),
             ("Station-002", "Assembly Line A"),
@@ -213,7 +242,7 @@ async def seed_demo_data():
             stations[name] = station
         print(f"✅ Создано {len(stations)} станций")
         
-        # 9. Создаем продукты
+        # 11. Создаем продукты
         products_data = [
             ("Industrial Pump X100", "Промышленный насос для жидкостей", Decimal("450.00")),
             ("Hydraulic Motor M200", "Гидравлический мотор", Decimal("680.00")),
@@ -236,7 +265,7 @@ async def seed_demo_data():
             products[name] = product
         print(f"✅ Создано {len(products)} продуктов")
         
-        # 10. Создаем производственные заказы
+        # 12. Создаем производственные заказы
         orders_data = [
             ("Industrial Pump X100", 20, "pending"),
             ("Hydraulic Motor M200", 15, "in_progress"),
@@ -264,7 +293,7 @@ async def seed_demo_data():
             orders[f"{product_name}-{qty}"] = order
         print(f"✅ Создано {len(orders)} производственных заказов")
         
-        # 11. Создаем операции для заказов
+        # 13. Создаем операции для заказов
         operations_templates = [
             ("Cutting", "CNC Machining", 2.5),
             ("Machining", "CNC Machining", 4.0),
@@ -296,7 +325,7 @@ async def seed_demo_data():
         await session.flush()
         print(f"✅ Создано {op_count} производственных операций")
         
-        # 12. Создаем клиентов
+        # 14. Создаем клиентов
         customers_data = [
             ("Acme Industries", "manufacturing@acme.com", "+1-555-1001", "Промышленное оборудование"),
             ("GlobalTech Corp", "procurement@globaltech.com", "+1-555-1002", "Технологии"),
@@ -320,7 +349,7 @@ async def seed_demo_data():
             customers[name] = customer
         print(f"✅ Создано {len(customers)} клиентов")
         
-        # 13. Создаем движения запасов (история)
+        # 15. Создаем движения запасов (история)
         movement_count = 0
         for item_name, item in list(items.items())[:5]:
             for _ in range(random.randint(2, 4)):
@@ -342,6 +371,8 @@ async def seed_demo_data():
         await session.commit()
         print("\n🎉 Демо-данные успешно созданы!")
         print(f"\n📊 Итого:")
+        print(f"   - SuperAdmin: 1 (superadmin / admin123)")
+        print(f"   - Tenant Admin: 1 (admin / admin123)")
         print(f"   - Тенантов: 1")
         print(f"   - Категорий: {len(categories)}")
         print(f"   - Поставщиков: {len(suppliers)}")
@@ -355,7 +386,9 @@ async def seed_demo_data():
         print(f"   - Операций: {op_count}")
         print(f"   - Клиентов: {len(customers)}")
         print(f"   - Движений запасов: {movement_count}")
-        print(f"\n🔐 Логин для демо: admin@virtuoso.com / admin123")
+        print(f"\n🔐 Логин для демо:")
+        print(f"   - SuperAdmin: superadmin@virtuoso.com / admin123")
+        print(f"   - Tenant Admin: admin@virtuoso.com / admin123")
 
 
 if __name__ == "__main__":
