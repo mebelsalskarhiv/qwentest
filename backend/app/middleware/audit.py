@@ -9,8 +9,9 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from app.core.database import get_db_session
-from app.models.audit import AuditLog, ActionType
+from app.core.database import async_session_maker
+from app.models.user import AuditLog
+from app.models.enums import ActionType
 
 
 class AuditMiddleware(BaseHTTPMiddleware):
@@ -136,7 +137,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
         user_agent: str | None,
     ):
         """Записывает запись аудита в БД."""
-        async with get_db_session() as db:
+        async with async_session_maker() as db:
             audit_log = AuditLog(
                 user_id=user_id,
                 tenant_id=tenant_id,
