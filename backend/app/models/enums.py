@@ -67,3 +67,4 @@ class ActionType(str, Enum):
     IMPORT = "import"
     APPROVE = "approve"
     REJECT = "reject"
+    ERROR = "error"

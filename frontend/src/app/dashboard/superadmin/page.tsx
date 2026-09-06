@@ -58,6 +58,17 @@ interface TenantStats {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+const getAccessToken = () => {
+  const authStorage = localStorage.getItem('auth-storage');
+  if (!authStorage) return null;
+
+  try {
+    return JSON.parse(authStorage).state?.accessToken || null;
+  } catch {
+    return null;
+  }
+};
+
 export default function SuperAdminDashboard() {
   const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -87,8 +98,8 @@ export default function SuperAdminDashboard() {
 
   const fetchTenants = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/v1/superadmin/tenants/`, {
+      const token = getAccessToken();
+      const response = await fetch(`${API_BASE}/superadmin/tenants/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -105,8 +116,8 @@ export default function SuperAdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/v1/superadmin/tenants/stats`, {
+      const token = getAccessToken();
+      const response = await fetch(`${API_BASE}/superadmin/tenants/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -165,10 +176,10 @@ export default function SuperAdminDashboard() {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAccessToken();
       const url = selectedTenant
-        ? `${API_BASE}/api/v1/superadmin/tenants/${selectedTenant.id}`
-        : `${API_BASE}/api/v1/superadmin/tenants/`;
+        ? `${API_BASE}/superadmin/tenants/${selectedTenant.id}`
+        : `${API_BASE}/superadmin/tenants/`;
       
       const method = selectedTenant ? 'PUT' : 'POST';
       
@@ -198,8 +209,8 @@ export default function SuperAdminDashboard() {
     if (!confirm('Are you sure you want to delete this tenant?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/v1/superadmin/tenants/${tenantId}`, {
+      const token = getAccessToken();
+      const response = await fetch(`${API_BASE}/superadmin/tenants/${tenantId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -217,9 +228,9 @@ export default function SuperAdminDashboard() {
 
   const handleToggleStatus = async (tenantId: string, currentStatus: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAccessToken();
       const action = currentStatus === 'active' ? 'suspend' : 'activate';
-      const response = await fetch(`${API_BASE}/api/v1/superadmin/tenants/${tenantId}/${action}`, {
+      const response = await fetch(`${API_BASE}/superadmin/tenants/${tenantId}/${action}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

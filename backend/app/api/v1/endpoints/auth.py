@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.core.security import verify_password, get_password_hash
 from app.schemas.user import UserCreate, UserResponse, LoginRequest, Token
 from app.models.user import User
-from app.services.auth import create_access_token, create_refresh_token
+from app.services.auth import create_access_token, create_refresh_token, get_current_user
 from sqlalchemy import select
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -88,7 +88,6 @@ async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user: User = Depends(lambda: None)):
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current user information."""
-    # This will be implemented with proper dependency
     return current_user

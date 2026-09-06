@@ -58,7 +58,7 @@ class Tenant(Base):
     users = relationship("User", back_populates="tenant", foreign_keys="User.tenant_id", cascade="all, delete-orphan")
     
     # Cascade delete for related data through users
-    audit_logs = relationship("AuditLog", secondary="users", primaryjoin="Tenant.id == User.tenant_id", secondaryjoin="User.id == AuditLog.user_id", cascade="all, delete-orphan")
+    audit_logs = relationship("AuditLog", secondary="users", primaryjoin="Tenant.id == User.tenant_id", secondaryjoin="User.id == AuditLog.user_id", viewonly=True)
     
     def __repr__(self):
         return f"<Tenant {self.name} ({self.subdomain})>"

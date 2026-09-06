@@ -46,7 +46,6 @@ def upgrade() -> None:
     sa.Column('manager_id', sa.Integer(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['manager_id'], ['employees.id'], ),
     sa.ForeignKeyConstraint(['parent_id'], ['departments.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -71,6 +70,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_employees_employee_code'), 'employees', ['employee_code'], unique=True)
     op.create_index(op.f('ix_employees_id'), 'employees', ['id'], unique=False)
+    op.create_foreign_key(None, 'departments', 'employees', ['manager_id'], ['id'])
     op.create_table('inventory_categories',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),

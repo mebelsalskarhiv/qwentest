@@ -13,6 +13,7 @@ from app.core.database import get_db
 from app.services.auth import get_current_user, get_current_active_superuser as get_current_superuser
 from app.models.tenant import Tenant, TenantStatus, BillingPlan
 from app.models.user import User
+from app.models.enums import UserRole
 from app.schemas.tenant import (
     TenantCreate,
     TenantUpdate,
@@ -199,7 +200,7 @@ async def create_tenant(
             is_active=True,
             is_superuser=False,
             tenant_id=tenant.id,
-            role="TENANT_ADMIN"
+            role=UserRole.MANAGER
         )
         tenant.admin_user_id = admin_user.id
         db.add(admin_user)

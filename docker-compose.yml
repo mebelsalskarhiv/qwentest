@@ -24,7 +24,7 @@ services:
       dockerfile: Dockerfile
     container_name: virtuoso_backend
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/virtuoso_mes
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/virtuoso_mes
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
       DEBUG: ${DEBUG:-true}
     volumes:

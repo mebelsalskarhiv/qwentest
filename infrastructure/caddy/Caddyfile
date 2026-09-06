@@ -3,7 +3,7 @@
 
 {
     email admin@virtuoso-mes.local
-    storage file_data /data/caddy
+    storage file_system /data/caddy
     on_demand_tls {
         ask http://backend:8000/api/v1/superadmin/tenants/validate-domain
     }
@@ -35,17 +35,12 @@ superadmin.virtuoso-mes.local {
 
 # Wildcard for tenant subdomains - Automatic SSL
 *.virtuoso-mes.local {
-    # Extract subdomain from host header
-    @tenant {
-        host_regexp ^([a-z0-9-]+)\.virtuoso-mes\.local$
+    handle /api/* {
+        reverse_proxy backend:8000
     }
-    
-    handle @tenant {
+
+    handle {
         reverse_proxy frontend:3000
-        
-        handle /api/* {
-            reverse_proxy backend:8000
-        }
     }
     
     # Custom domains for tenants (on-demand TLS)
@@ -55,7 +50,7 @@ superadmin.virtuoso-mes.local {
 }
 
 # Development localhost support
-localhost {
+http://localhost {
     reverse_proxy frontend:3000
     
     handle /api/* {
