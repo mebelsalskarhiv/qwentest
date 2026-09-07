@@ -125,4 +125,8 @@ class TenantStats(BaseModel):
     suspended_tenants: int
     trial_tenants: int
     total_users: int
-    revenue_mrr: float  # Monthly Recurring Revenue
+    revenue_mrr: float = Field(alias="mrr")  # Monthly Recurring Revenue
+
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True

@@ -75,6 +75,14 @@ async def setup_test_database():
             await conn.run_sync(table.drop)
 
 
+@pytest.fixture(scope="function", autouse=True)
+async def override_test_db_dependency():
+    """Ensure every test resolves DB access through the same override."""
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    app.dependency_overrides.clear()
+
+
 async def override_get_db() -> AsyncSession:
     """Override get_db dependency for testing."""
     async with test_async_session_maker() as session:

@@ -1,6 +1,7 @@
 """
 Tests for SuperAdmin API endpoints in Virtuoso MES
 """
+import asyncio
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -29,7 +30,7 @@ class AsyncSessionCompat:
         self._session = session
 
     async def execute(self, *args, **kwargs):
-        return self._session.execute(*args, **kwargs)
+        return await asyncio.to_thread(self._session.execute, *args, **kwargs)
 
     async def commit(self):
         return self._session.commit()
@@ -58,7 +59,6 @@ async def override_get_db():
         db.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
 
 
 @pytest.fixture(scope="function")
@@ -105,7 +105,7 @@ def tenant_admin_user(db_session):
     tenant = Tenant(
         id="tenant-001",
         name="Test Company",
-        subdomain="testcompany",
+        subdomain="tenantadmincompany",
         status=TenantStatus.ACTIVE,
         billing_plan=BillingPlan.STARTUP
     )
@@ -147,9 +147,19 @@ def test_tenant(db_session):
 
 @pytest.fixture(scope="function")
 def client(db_session):
-    """Create a test client with database override."""
-    with TestClient(app=app) as c:
-        yield c
+    """Create a test client with a fixture-scoped database override."""
+    async def override_get_db():
+        try:
+            yield AsyncSessionCompat(db_session)
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        with TestClient(app=app) as c:
+            yield c
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture

@@ -29,7 +29,6 @@ def override_get_db():
         db.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
 
 
 @pytest.fixture(scope="function")
@@ -47,9 +46,19 @@ def db_session():
 
 @pytest.fixture(scope="function")
 def client(db_session):
-    """Create a test client with database override."""
-    with TestClient(app=app) as c:
-        yield c
+    """Create a test client with a fixture-scoped database override."""
+    async def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        with TestClient(app=app) as c:
+            yield c
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture

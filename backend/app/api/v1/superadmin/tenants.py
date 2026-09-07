@@ -28,6 +28,7 @@ router = APIRouter(prefix="/tenants", tags=["superadmin-tenants"])
 
 
 @router.get("/stats", response_model=TenantStats)
+@router.get("/statistics", response_model=TenantStats)
 async def get_tenant_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
@@ -59,9 +60,9 @@ async def get_tenant_stats(
     # Calculate MRR (simplified - would integrate with payment provider in production)
     plan_prices = {
         BillingPlan.FREE: 0,
-        BillingPlan.STARTUP: 29.0,
-        BillingPlan.PROFESSIONAL: 99.0,
-        BillingPlan.ENTERPRISE: 299.0
+        BillingPlan.STARTUP: 49.0,
+        BillingPlan.PROFESSIONAL: 149.0,
+        BillingPlan.ENTERPRISE: 499.0
     }
     
     result = await db.execute(
@@ -255,7 +256,7 @@ async def update_tenant(
 @router.delete("/{tenant_id}", response_model=TenantResponse)
 async def delete_tenant(
     tenant_id: str,
-    soft_delete: bool = True,
+    soft_delete: bool = False,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
@@ -274,7 +275,7 @@ async def delete_tenant(
         await db.refresh(tenant)
         return TenantResponse.from_orm(tenant)
 
-    await db.delete(tenant)
+    db.delete(tenant)
     await db.commit()
     return TenantResponse.from_orm(tenant)
 
@@ -309,6 +310,7 @@ async def update_tenant_billing(
     return TenantResponse.from_orm(tenant)
 
 
+@router.post("/{tenant_id}/enable-ssl", response_model=TenantResponse)
 @router.put("/{tenant_id}/ssl", response_model=TenantResponse)
 async def configure_tenant_ssl(
     tenant_id: str,
