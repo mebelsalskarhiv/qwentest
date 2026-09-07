@@ -1,1 +1,38 @@
-Nothing needs to be ignored since only a README.md file was added, which is a source/config file and not a build artifact, dependency, or temporary file.
+```
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Local environment settings
+.env
+.env.local
+*.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Temporary files
+*.tmp
+
+# Dependencies cache
+.mypy_cache/
+.pytest_cache/
+```

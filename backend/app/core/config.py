@@ -22,6 +22,7 @@ class Settings(BaseSettings):
 
     # Security
     PASSWORD_HASH_ROUNDS: int = 12
+    ENCRYPTION_KEY: str = ""  # Fernet key for station passwords (set in .env)
 
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:3001"

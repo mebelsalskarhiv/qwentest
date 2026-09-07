@@ -11,7 +11,8 @@ from app.schemas.hr import (
 )
 from app.models.hr import Employee, Department, Customer, Station
 from app.models.user import User
-from app.services.auth import get_current_user
+from app.services.auth import get_current_user, require_permission
+from app.models.enums import Permission
 
 router = APIRouter(prefix="/hr", tags=["HR & Stations"])
 
@@ -25,10 +26,13 @@ async def get_employees(
     department_id: int = None,
     is_active: bool = True,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_READ))
 ):
     """Get all employees."""
-    query = select(Employee).where(Employee.is_active == is_active)
+    query = select(Employee).where(
+        (Employee.is_active == is_active) & 
+        (Employee.tenant_id == current_user.tenant_id)
+    )
     
     if department_id:
         query = query.where(Employee.department_id == department_id)
@@ -42,11 +46,14 @@ async def get_employees(
 async def get_employee(
     employee_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_READ))
 ):
     """Get employee by ID."""
     result = await db.execute(
-        select(Employee).where(Employee.id == employee_id)
+        select(Employee).where(
+            (Employee.id == employee_id) & 
+            (Employee.tenant_id == current_user.tenant_id)
+        )
     )
     employee = result.scalar_one_or_none()
     
@@ -63,12 +70,15 @@ async def get_employee(
 async def create_employee(
     employee_data: EmployeeCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_CREATE))
 ):
     """Create new employee."""
-    # Check if employee code exists
+    # Check if employee code exists within tenant
     result = await db.execute(
-        select(Employee).where(Employee.employee_code == employee_data.employee_code)
+        select(Employee).where(
+            (Employee.employee_code == employee_data.employee_code) &
+            (Employee.tenant_id == current_user.tenant_id)
+        )
     )
     existing = result.scalar_one_or_none()
     
@@ -78,7 +88,7 @@ async def create_employee(
             detail="Employee code already exists"
         )
     
-    employee = Employee(**employee_data.model_dump())
+    employee = Employee(**employee_data.model_dump(), tenant_id=current_user.tenant_id)
     db.add(employee)
     await db.flush()
     await db.refresh(employee)
@@ -91,11 +101,14 @@ async def update_employee(
     employee_id: int,
     employee_data: EmployeeUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_UPDATE))
 ):
     """Update employee."""
     result = await db.execute(
-        select(Employee).where(Employee.id == employee_id)
+        select(Employee).where(
+            (Employee.id == employee_id) & 
+            (Employee.tenant_id == current_user.tenant_id)
+        )
     )
     employee = result.scalar_one_or_none()
     
@@ -119,11 +132,14 @@ async def update_employee(
 async def delete_employee(
     employee_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_DELETE))
 ):
     """Delete employee (soft delete)."""
     result = await db.execute(
-        select(Employee).where(Employee.id == employee_id)
+        select(Employee).where(
+            (Employee.id == employee_id) & 
+            (Employee.tenant_id == current_user.tenant_id)
+        )
     )
     employee = result.scalar_one_or_none()
     
@@ -144,10 +160,15 @@ async def delete_employee(
 @router.get("/departments", response_model=List[DepartmentResponse])
 async def get_departments(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_READ))
 ):
     """Get all departments."""
-    result = await db.execute(select(Department).where(Department.is_active == True))
+    result = await db.execute(
+        select(Department).where(
+            (Department.is_active == True) & 
+            (Department.tenant_id == current_user.tenant_id)
+        )
+    )
     return result.scalars().all()
 
 
@@ -155,12 +176,15 @@ async def get_departments(
 async def create_department(
     department_data: DepartmentCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_CREATE))
 ):
     """Create new department."""
-    # Check if department code exists
+    # Check if department code exists within tenant
     result = await db.execute(
-        select(Department).where(Department.code == department_data.code)
+        select(Department).where(
+            (Department.code == department_data.code) &
+            (Department.tenant_id == current_user.tenant_id)
+        )
     )
     existing = result.scalar_one_or_none()
     
@@ -170,7 +194,7 @@ async def create_department(
             detail="Department code already exists"
         )
     
-    department = Department(**department_data.model_dump())
+    department = Department(**department_data.model_dump(), tenant_id=current_user.tenant_id)
     db.add(department)
     await db.flush()
     await db.refresh(department)
@@ -183,11 +207,14 @@ async def update_department(
     department_id: int,
     department_data: DepartmentUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_UPDATE))
 ):
     """Update department."""
     result = await db.execute(
-        select(Department).where(Department.id == department_id)
+        select(Department).where(
+            (Department.id == department_id) & 
+            (Department.tenant_id == current_user.tenant_id)
+        )
     )
     department = result.scalar_one_or_none()
     
@@ -214,10 +241,13 @@ async def get_customers(
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get all customers."""
-    query = select(Customer).where(Customer.is_active == True)
+    query = select(Customer).where(
+        (Customer.is_active == True) & 
+        (Customer.tenant_id == current_user.tenant_id)
+    )
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     return result.scalars().all()
@@ -227,12 +257,15 @@ async def get_customers(
 async def create_customer(
     customer_data: CustomerCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_CREATE))
 ):
     """Create new customer."""
-    # Check if customer code exists
+    # Check if customer code exists within tenant
     result = await db.execute(
-        select(Customer).where(Customer.code == customer_data.code)
+        select(Customer).where(
+            (Customer.code == customer_data.code) &
+            (Customer.tenant_id == current_user.tenant_id)
+        )
     )
     existing = result.scalar_one_or_none()
     
@@ -242,7 +275,7 @@ async def create_customer(
             detail="Customer code already exists"
         )
     
-    customer = Customer(**customer_data.model_dump())
+    customer = Customer(**customer_data.model_dump(), tenant_id=current_user.tenant_id)
     db.add(customer)
     await db.flush()
     await db.refresh(customer)
@@ -255,11 +288,14 @@ async def update_customer(
     customer_id: int,
     customer_data: CustomerUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_UPDATE))
 ):
     """Update customer."""
     result = await db.execute(
-        select(Customer).where(Customer.id == customer_id)
+        select(Customer).where(
+            (Customer.id == customer_id) & 
+            (Customer.tenant_id == current_user.tenant_id)
+        )
     )
     customer = result.scalar_one_or_none()
     
@@ -286,10 +322,13 @@ async def get_stations(
     work_center_id: int = None,
     status_filter: str = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get all stations."""
-    query = select(Station).where(Station.is_active == True)
+    query = select(Station).where(
+        (Station.is_active == True) & 
+        (Station.tenant_id == current_user.tenant_id)
+    )
     
     if work_center_id:
         query = query.where(Station.work_center_id == work_center_id)
@@ -305,11 +344,14 @@ async def get_stations(
 async def get_station(
     station_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get station by ID."""
     result = await db.execute(
-        select(Station).where(Station.id == station_id)
+        select(Station).where(
+            (Station.id == station_id) & 
+            (Station.tenant_id == current_user.tenant_id)
+        )
     )
     station = result.scalar_one_or_none()
     
@@ -326,12 +368,17 @@ async def get_station(
 async def create_station(
     station_data: StationCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_CREATE))
 ):
     """Create new station."""
-    # Check if station code exists
+    from app.core.security import encrypt_station_password
+    
+    # Check if station code exists within tenant
     result = await db.execute(
-        select(Station).where(Station.code == station_data.code)
+        select(Station).where(
+            (Station.code == station_data.code) &
+            (Station.tenant_id == current_user.tenant_id)
+        )
     )
     existing = result.scalar_one_or_none()
     
@@ -344,10 +391,9 @@ async def create_station(
     station_data_dict = station_data.model_dump()
     password = station_data_dict.pop('password', None)
     
-    station = Station(**station_data_dict)
+    station = Station(**station_data_dict, tenant_id=current_user.tenant_id)
     if password:
-        # In production, encrypt password here
-        station.password_encrypted = password
+        station.password_encrypted = encrypt_station_password(password)
     
     db.add(station)
     await db.flush()
@@ -361,11 +407,16 @@ async def update_station(
     station_id: int,
     station_data: StationUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_UPDATE))
 ):
     """Update station."""
+    from app.core.security import encrypt_station_password
+    
     result = await db.execute(
-        select(Station).where(Station.id == station_id)
+        select(Station).where(
+            (Station.id == station_id) & 
+            (Station.tenant_id == current_user.tenant_id)
+        )
     )
     station = result.scalar_one_or_none()
     
@@ -382,8 +433,7 @@ async def update_station(
         setattr(station, field, value)
     
     if password:
-        # In production, encrypt password here
-        station.password_encrypted = password
+        station.password_encrypted = encrypt_station_password(password)
     
     await db.flush()
     await db.refresh(station)
@@ -396,13 +446,16 @@ async def update_station_status(
     station_id: int,
     status: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_UPDATE))
 ):
     """Update station status (online/offline/maintenance)."""
     from datetime import datetime
     
     result = await db.execute(
-        select(Station).where(Station.id == station_id)
+        select(Station).where(
+            (Station.id == station_id) & 
+            (Station.tenant_id == current_user.tenant_id)
+        )
     )
     station = result.scalar_one_or_none()
     
