@@ -127,6 +127,9 @@ def create_app() -> FastAPI:
             if demo_tenant.admin_user_id != demo_user.id:
                 demo_tenant.admin_user_id = demo_user.id
             await session.commit()
+
+        from app.services.demo_data import seed_demo_data
+        await seed_demo_data()
         
         logger.info("Virtuoso MES started successfully!")
     
