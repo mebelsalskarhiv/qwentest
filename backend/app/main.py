@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.v1.router import api_router
 from app.models import User, Role, InventoryItem, ProductionOrder
+from app.models.tenant import Tenant, TenantStatus, BillingPlan
 from app.middleware.audit import AuditMiddleware
 
 
@@ -89,6 +90,43 @@ def create_app() -> FastAPI:
                 session.add(admin_user)
                 await session.commit()
                 logger.info("Default admin user created: admin / admin123")
+
+            demo_result = await session.execute(
+                select(Tenant).where(Tenant.subdomain == "demo")
+            )
+            demo_tenant = demo_result.scalar_one_or_none()
+            if not demo_tenant:
+                demo_tenant = Tenant(
+                    id="00000000-0000-0000-0000-000000000001",
+                    name="Demo Company",
+                    subdomain="demo",
+                    status=TenantStatus.ACTIVE,
+                    billing_plan=BillingPlan.FREE,
+                    admin_email="demo@virtuoso.com",
+                )
+                session.add(demo_tenant)
+                await session.flush()
+
+            demo_user_result = await session.execute(
+                select(User).where(User.username == "demo")
+            )
+            demo_user = demo_user_result.scalar_one_or_none()
+            if not demo_user:
+                demo_user = User(
+                    email="demo@virtuoso.com",
+                    username="demo",
+                    full_name="Demo User",
+                    hashed_password=get_password_hash("demo12345"),
+                    role=UserRole.ADMIN,
+                    is_active=True,
+                    tenant_id=demo_tenant.id,
+                )
+                session.add(demo_user)
+                await session.flush()
+
+            if demo_tenant.admin_user_id != demo_user.id:
+                demo_tenant.admin_user_id = demo_user.id
+            await session.commit()
         
         logger.info("Virtuoso MES started successfully!")
     

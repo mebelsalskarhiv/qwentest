@@ -25,36 +25,49 @@ import CloudIcon from '@mui/icons-material/Cloud';
 export default function LoginPage() {
   const router = useRouter();
   const { login, setUser } = useAuthStore();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [registration, setRegistration] = useState({
+    tenant_name: '',
+    subdomain: '',
+    email: '',
+    username: '',
+    password: '',
+    full_name: '',
+  });
   const [error, setError] = useState('');
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDemoLogin = async () => {
     setError('');
     setLoading(true);
 
     try {
-      const response = await authApi.login(username, password);
-      const { access_token, refresh_token } = response.data;
-      
-      login(access_token, refresh_token);
-      
-      // Get user info
+      const response = await authApi.demoLogin();
+      login(response.data.access_token, response.data.refresh_token);
       const userResponse = await authApi.getMe();
       setUser(userResponse.data);
-      
-      // Redirect superadmin to SuperAdmin dashboard
-      if (userResponse.data.is_superuser) {
-        router.push('/dashboard/superadmin');
-      } else {
-        router.push('/dashboard');
-      }
+      router.push('/dashboard');
     } catch (err: any) {
-      setError(
-        err.response?.data?.detail || 'Login failed. Please try again.'
-      );
+      setError(err.response?.data?.detail || 'Demo mode is temporarily unavailable.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setRegistrationMessage('');
+    setLoading(true);
+
+    try {
+      const response = await authApi.registerTenant(registration);
+      login(response.data.access_token, response.data.refresh_token);
+      setUser(response.data.user);
+      setRegistrationMessage('Tenant created. Opening your workspace...');
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Unable to create tenant.');
     } finally {
       setLoading(false);
     }
@@ -107,7 +120,7 @@ export default function LoginPage() {
             <Grid item xs={12} md={6}>
               <Paper elevation={4} sx={{ p: 3 }}>
                 <Typography variant="h5" component="h2" gutterBottom align="center">
-                  Login to Your Account
+                  Demo workspace
                 </Typography>
                 
                 {error && (
@@ -116,46 +129,66 @@ export default function LoginPage() {
                   </Alert>
                 )}
 
-                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-                  <TextField
-                    fullWidth
-                    label="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    margin="normal"
-                    required
-                    autoComplete="username"
-                  />
-                  <TextField
-                    fullWidth
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    margin="normal"
-                    required
-                    autoComplete="current-password"
-                  />
+                <Box sx={{ mt: 2 }}>
                   <Button
                     fullWidth
-                    type="submit"
                     variant="contained"
                     size="large"
                     disabled={loading}
+                    onClick={handleDemoLogin}
                     sx={{ mt: 3, mb: 2 }}
                   >
-                    {loading ? 'Logging in...' : 'Login'}
+                    {loading ? 'Opening demo...' : 'Enter demo mode'}
                   </Button>
-                  
-                  <Typography variant="caption" color="textSecondary" align="center" display="block">
-                    Demo: admin / admin123
+                  <Typography variant="body2" color="text.secondary" align="center" display="block">
+                    Demo data is isolated in the `demo` tenant.
                   </Typography>
+                  <Button fullWidth variant="text" onClick={() => router.push('/superadmin/login')} sx={{ mt: 2 }}>
+                    Superadmin login
+                  </Button>
                 </Box>
               </Paper>
             </Grid>
           </Grid>
         </Container>
       </Box>
+
+      <Container id="register" maxWidth="sm" sx={{ py: 8 }}>
+        <Typography variant="h4" component="h2" gutterBottom align="center">
+          Create a tenant
+        </Typography>
+        <Typography color="text.secondary" align="center" sx={{ mb: 3 }}>
+          Start an isolated workspace with its own administrator.
+        </Typography>
+        {registrationMessage && <Alert severity="success" sx={{ mb: 2 }}>{registrationMessage}</Alert>}
+        <Box component="form" onSubmit={handleRegistration}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Company name" required value={registration.tenant_name} onChange={(e) => setRegistration({ ...registration, tenant_name: e.target.value })} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Subdomain" required helperText="3+ lowercase letters, numbers or hyphens" value={registration.subdomain} onChange={(e) => setRegistration({ ...registration, subdomain: e.target.value.toLowerCase() })} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Your name" value={registration.full_name} onChange={(e) => setRegistration({ ...registration, full_name: e.target.value })} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth type="email" label="Email" required value={registration.email} onChange={(e) => setRegistration({ ...registration, email: e.target.value })} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Username" required value={registration.username} onChange={(e) => setRegistration({ ...registration, username: e.target.value })} />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField fullWidth type="password" label="Password" required inputProps={{ minLength: 8 }} value={registration.password} onChange={(e) => setRegistration({ ...registration, password: e.target.value })} />
+            </Grid>
+            <Grid item xs={12}>
+              <Button fullWidth type="submit" variant="outlined" size="large" disabled={loading}>
+                Create tenant account
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Container>
 
       {/* Features Section */}
       <Container maxWidth="lg" sx={{ py: 8 }}>

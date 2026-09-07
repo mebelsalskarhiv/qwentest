@@ -23,6 +23,7 @@ import {
   DialogActions,
   TextField,
   MenuItem,
+  Checkbox,
   Alert,
   CircularProgress,
 } from '@mui/material';
@@ -484,13 +485,9 @@ export default function SuperAdminDashboard() {
                 />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  type="checkbox"
-                  label=""
+                <Checkbox
                   checked={formData.ssl_enabled}
                   onChange={(e) => setFormData({ ...formData, ssl_enabled: e.target.checked })}
-                  InputProps={{ style: { width: 'auto' } }}
                 />
                 <label>Enable SSL/TLS</label>
               </Grid>

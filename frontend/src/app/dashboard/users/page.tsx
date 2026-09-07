@@ -134,12 +134,15 @@ export default function UsersPage() {
   };
 
   const toggleRole = (roleId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      role_ids: prev.role_ids.includes(roleId)
-        ? prev.role_ids.filter(id => id !== roleId)
-        : [...prev.role_ids, roleId],
-    }));
+    setFormData(prev => {
+      const roleIds = prev.role_ids || [];
+      return {
+        ...prev,
+        role_ids: roleIds.includes(roleId)
+          ? roleIds.filter(id => id !== roleId)
+          : [...roleIds, roleId],
+      };
+    });
   };
 
   if (loading) {
@@ -264,7 +267,7 @@ export default function UsersPage() {
                   <Chip
                     key={role.id}
                     label={role.name}
-                    color={formData.role_ids.includes(role.id) ? 'primary' : 'default'}
+                    color={formData.role_ids?.includes(role.id) ? 'primary' : 'default'}
                     onClick={() => toggleRole(role.id)}
                     clickable
                   />

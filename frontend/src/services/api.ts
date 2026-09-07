@@ -36,9 +36,15 @@ apiClient.interceptors.request.use(
 export const authApi = {
   login: (username: string, password: string) =>
     apiClient.post('/auth/login', { username, password }),
+  superadminLogin: (username: string, password: string) =>
+    apiClient.post('/auth/superadmin/login', { username, password }),
   
   register: (data: any) =>
     apiClient.post('/auth/register', data),
+  registerTenant: (data: any) =>
+    apiClient.post('/auth/register-tenant', data),
+  demoLogin: () =>
+    apiClient.post('/auth/demo'),
   
   getMe: () =>
     apiClient.get('/auth/me'),

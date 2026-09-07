@@ -7,6 +7,8 @@ interface User {
   email: string;
   full_name?: string;
   role: string;
+  is_superuser: boolean;
+  tenant_id?: string;
 }
 
 interface AuthState {

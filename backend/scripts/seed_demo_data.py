@@ -11,7 +11,8 @@ import random
 sys.path.insert(0, "/workspace/backend")
 
 from app.core.database import async_session_maker, engine, Base
-from app.models.user import User, UserRole
+from app.models.user import User
+from app.models.enums import UserRole
 from app.models.tenant import Tenant, TenantStatus, BillingPlan
 from app.models.inventory import InventoryCategory, InventoryItem, Supplier, StockMovement
 from app.models.production import Product, WorkCenter, ProductionOrder, ProductionOrderStatus, ProductionOperation, BillOfMaterial, MaterialConsumption
@@ -39,7 +40,7 @@ async def seed_demo_data():
             hashed_password=get_password_hash("admin123"),
             is_superuser=True,
             is_active=True,
-            role=UserRole.SUPER_ADMIN,
+            role=UserRole.ADMIN,
         )
         session.add(superadmin)
         await session.flush()
@@ -67,7 +68,7 @@ async def seed_demo_data():
             hashed_password=get_password_hash("admin123"),
             is_superuser=False,
             is_active=True,
-            role=UserRole.TENANT_ADMIN,
+            role=UserRole.ADMIN,
             tenant_id=tenant.id,
         )
         session.add(admin_user)

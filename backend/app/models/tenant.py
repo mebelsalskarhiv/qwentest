@@ -2,7 +2,7 @@
 Multitenancy core module for Virtuoso MES
 Handles tenant isolation, subdomain routing, and SSL configuration
 """
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -42,7 +42,7 @@ class Tenant(Base):
     letsencrypt_email = Column(String(255), nullable=True)
     
     # Admin & Billing
-    admin_user_id = Column(String(36), ForeignKey("users.id", use_alter=True, name="fk_tenants_admin_user_id"), nullable=True)
+    admin_user_id = Column(Integer, ForeignKey("users.id", use_alter=True, name="fk_tenants_admin_user_id"), nullable=True)
     admin_email = Column(String(255), nullable=True)
     
     # Trial & Expiration
