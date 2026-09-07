@@ -7,10 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List, Optional
 from app.core.database import get_db
-from app.services.auth import get_current_user, get_current_active_superuser as get_current_superuser
+from app.services.auth import get_current_user, get_current_active_superuser as get_current_superuser, require_permission
 from app.models.user import User
 from app.models.tenant import Tenant
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
+from app.models.enums import Permission
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -20,7 +21,7 @@ async def list_users(
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_READ))
 ):
     """List users in current tenant"""
     query = select(User).where(User.tenant_id == current_user.tenant_id)
@@ -34,13 +35,14 @@ async def list_users(
 async def create_user(
     user_data: UserCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_CREATE))
 ):
     """Create a new user in current tenant"""
-    # Check if user exists
+    # Check if user exists within tenant
     result = await db.execute(
         select(User).where(
-            (User.email == user_data.email) | (User.username == user_data.username)
+            (User.email == user_data.email) & 
+            (User.tenant_id == current_user.tenant_id)
         )
     )
     existing_user = result.scalar_one_or_none()
@@ -48,7 +50,7 @@ async def create_user(
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email or username already registered"
+            detail="Email already registered in this tenant"
         )
     
     from app.core.security import get_password_hash
@@ -75,7 +77,7 @@ async def create_user(
 async def get_user(
     user_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_READ))
 ):
     """Get user details"""
     result = await db.execute(
@@ -99,7 +101,7 @@ async def update_user(
     user_id: int,
     user_data: UserUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_UPDATE))
 ):
     """Update user details"""
     result = await db.execute(
@@ -128,7 +130,7 @@ async def update_user(
 async def delete_user(
     user_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.USERS_DELETE))
 ):
     """Delete a user"""
     result = await db.execute(
