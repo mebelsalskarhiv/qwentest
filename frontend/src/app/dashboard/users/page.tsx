@@ -56,7 +56,7 @@ export default function UsersPage() {
       setRoles(rolesData);
       setError(null);
     } catch (err) {
-      setError('Failed to load data');
+      setError('Не удалось загрузить данные');
       console.error(err);
     } finally {
       setLoading(false);
@@ -108,7 +108,7 @@ export default function UsersPage() {
         await userApi.updateUser(editingUser.id, updateData);
       } else {
         if (!formData.password) {
-          setError('Password is required for new users');
+          setError('Для нового пользователя необходим пароль');
           return;
         }
         await userApi.createUser(formData as UserCreate);
@@ -116,19 +116,19 @@ export default function UsersPage() {
       handleCloseDialog();
       loadData();
     } catch (err) {
-      setError(editingUser ? 'Failed to update user' : 'Failed to create user');
+      setError(editingUser ? 'Не удалось обновить пользователя' : 'Не удалось создать пользователя');
       console.error(err);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!confirm('Удалить этого пользователя?')) return;
     
     try {
       await userApi.deleteUser(id);
       loadData();
     } catch (err) {
-      setError('Failed to delete user');
+      setError('Не удалось удалить пользователя');
       console.error(err);
     }
   };
@@ -146,21 +146,21 @@ export default function UsersPage() {
   };
 
   if (loading) {
-    return <Box sx={{ p: 3 }}><Typography>Loading...</Typography></Box>;
+    return <Box sx={{ p: 3 }}><Typography>Загрузка...</Typography></Box>;
   }
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          User Management
+          Управление пользователями
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Add User
+          Добавить пользователя
         </Button>
       </Box>
 
@@ -174,13 +174,13 @@ export default function UsersPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Username</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Full Name</TableCell>
-              <TableCell>Roles</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Created</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Логин</TableCell>
+              <TableCell>Электронная почта</TableCell>
+              <TableCell>ФИО</TableCell>
+              <TableCell>Роли</TableCell>
+              <TableCell>Статус</TableCell>
+              <TableCell>Создан</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -188,7 +188,7 @@ export default function UsersPage() {
               <TableRow key={user.id}>
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.full_name || 'N/A'}</TableCell>
+                <TableCell>{user.full_name || 'Нет данных'}</TableCell>
                 <TableCell>
                   {user.roles?.map((role) => (
                     <Chip key={role.id} label={role.name} size="small" sx={{ m: 0.5 }} />
@@ -196,7 +196,7 @@ export default function UsersPage() {
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={user.is_active ? 'Active' : 'Inactive'}
+                    label={user.is_active ? 'Активен' : 'Неактивен'}
                     color={user.is_active ? 'success' : 'default'}
                     size="small"
                   />
@@ -215,7 +215,7 @@ export default function UsersPage() {
             {users.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} align="center">
-                  No users found
+                  Пользователи не найдены
                 </TableCell>
               </TableRow>
             )}
@@ -225,12 +225,12 @@ export default function UsersPage() {
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingUser ? 'Edit User' : 'Add New User'}
+          {editingUser ? 'Редактирование пользователя' : 'Новый пользователь'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
-              label="Username"
+              label="Логин"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               fullWidth
@@ -238,7 +238,7 @@ export default function UsersPage() {
               disabled={!!editingUser}
             />
             <TextField
-              label="Email"
+              label="Электронная почта"
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -246,7 +246,7 @@ export default function UsersPage() {
               required
             />
             <TextField
-              label={editingUser ? 'New Password (leave empty to keep current)' : 'Password'}
+              label={editingUser ? 'Новый пароль (оставьте пустым, чтобы сохранить текущий)' : 'Пароль'}
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -254,14 +254,14 @@ export default function UsersPage() {
               required={!editingUser}
             />
             <TextField
-              label="Full Name"
+              label="ФИО"
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               fullWidth
             />
             
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Roles</Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Роли</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {roles.map((role) => (
                   <Chip
@@ -282,14 +282,14 @@ export default function UsersPage() {
                 checked={formData.is_active}
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
               />
-              <label htmlFor="is_active">Active User</label>
+              <label htmlFor="is_active">Активный пользователь</label>
             </Box>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>Отмена</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingUser ? 'Update' : 'Create'}
+            {editingUser ? 'Сохранить' : 'Создать'}
           </Button>
         </DialogActions>
       </Dialog>

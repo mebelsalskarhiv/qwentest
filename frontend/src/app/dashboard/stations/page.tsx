@@ -6,15 +6,15 @@ export default function StationsPage() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Work Stations Management
+        Управление станками и станциями
       </Typography>
       <Card>
         <CardContent>
           <Typography variant="body1">
-            Work stations configuration - Coming Soon
+            Настройка станций готовится
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            This page will allow you to configure and monitor production work stations.
+            Здесь можно будет настраивать и контролировать производственные станции.
           </Typography>
         </CardContent>
       </Card>

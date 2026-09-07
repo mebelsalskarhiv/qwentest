@@ -57,7 +57,7 @@ export default function RolesPage() {
       setPermissions(permissionsData);
       setError(null);
     } catch (err) {
-      setError('Failed to load data');
+      setError('Не удалось загрузить данные');
       console.error(err);
     } finally {
       setLoading(false);
@@ -103,19 +103,19 @@ export default function RolesPage() {
       handleCloseDialog();
       loadData();
     } catch (err) {
-      setError(editingRole ? 'Failed to update role' : 'Failed to create role');
+      setError(editingRole ? 'Не удалось обновить роль' : 'Не удалось создать роль');
       console.error(err);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this role?')) return;
+    if (!confirm('Удалить эту роль?')) return;
     
     try {
       await roleApi.deleteRole(id);
       loadData();
     } catch (err) {
-      setError('Failed to delete role');
+      setError('Не удалось удалить роль');
       console.error(err);
     }
   };
@@ -130,21 +130,21 @@ export default function RolesPage() {
   };
 
   if (loading) {
-    return <Box sx={{ p: 3 }}><Typography>Loading...</Typography></Box>;
+    return <Box sx={{ p: 3 }}><Typography>Загрузка...</Typography></Box>;
   }
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Role Management
+          Управление ролями
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Add Role
+          Добавить роль
         </Button>
       </Box>
 
@@ -158,19 +158,19 @@ export default function RolesPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Permissions</TableCell>
-              <TableCell>Users</TableCell>
-              <TableCell>Created</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Название</TableCell>
+              <TableCell>Описание</TableCell>
+              <TableCell>Разрешения</TableCell>
+              <TableCell>Пользователи</TableCell>
+              <TableCell>Создана</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {roles.map((role) => (
               <TableRow key={role.id}>
                 <TableCell>{role.name}</TableCell>
-                <TableCell>{role.description || 'N/A'}</TableCell>
+                <TableCell>{role.description || 'Нет данных'}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {role.permissions?.slice(0, 5).map((perm) => (
@@ -196,7 +196,7 @@ export default function RolesPage() {
             {roles.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  No roles found
+                  Роли не найдены
                 </TableCell>
               </TableRow>
             )}
@@ -206,19 +206,19 @@ export default function RolesPage() {
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingRole ? 'Edit Role' : 'Add New Role'}
+          {editingRole ? 'Редактирование роли' : 'Новая роль'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
-              label="Role Name"
+              label="Название роли"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               fullWidth
               required
             />
             <TextField
-              label="Description"
+              label="Описание"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               fullWidth
@@ -227,7 +227,7 @@ export default function RolesPage() {
             />
             
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Permissions</Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Разрешения</Typography>
               <Paper variant="outlined" sx={{ p: 2, maxHeight: 300, overflow: 'auto' }}>
                 <List dense>
                   {permissions.map((permission) => (
@@ -253,9 +253,9 @@ export default function RolesPage() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>Отмена</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingRole ? 'Update' : 'Create'}
+            {editingRole ? 'Сохранить' : 'Создать'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -112,14 +112,14 @@ export default function ProductionPage() {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
-          Production Orders
+          Производственные заказы
         </Typography>
         <Button
           variant="contained"
           color="primary"
           onClick={() => router.push('/dashboard/kanban')}
         >
-          View Kanban
+          Открыть канбан
         </Button>
       </Box>
 
@@ -127,25 +127,25 @@ export default function ProductionPage() {
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth size="small">
-              <InputLabel>Status Filter</InputLabel>
+              <InputLabel>Фильтр по статусу</InputLabel>
               <Select
                 value={statusFilter}
-                label="Status Filter"
+                label="Фильтр по статусу"
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <MenuItem value="all">All Statuses</MenuItem>
-                <MenuItem value="draft">Draft</MenuItem>
-                <MenuItem value="planned">Planned</MenuItem>
-                <MenuItem value="released">Released</MenuItem>
-                <MenuItem value="in_progress">In Progress</MenuItem>
-                <MenuItem value="completed">Completed</MenuItem>
-                <MenuItem value="cancelled">Cancelled</MenuItem>
+                <MenuItem value="all">Все статусы</MenuItem>
+                <MenuItem value="draft">Черновик</MenuItem>
+                <MenuItem value="planned">Запланирован</MenuItem>
+                <MenuItem value="released">Выпущен</MenuItem>
+                <MenuItem value="in_progress">В работе</MenuItem>
+                <MenuItem value="completed">Завершён</MenuItem>
+                <MenuItem value="cancelled">Отменён</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography variant="body2" color="textSecondary">
-              Total: {filteredOrders.length} orders
+              Всего: {filteredOrders.length} заказов
             </Typography>
           </Grid>
         </Grid>
@@ -156,14 +156,14 @@ export default function ProductionPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Order #</TableCell>
-                <TableCell>Product</TableCell>
-                <TableCell align="right">Qty Planned</TableCell>
-                <TableCell align="right">Qty Completed</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Scheduled Start</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>Номер заказа</TableCell>
+                <TableCell>Изделие</TableCell>
+                <TableCell align="right">Запланировано</TableCell>
+                <TableCell align="right">Выполнено</TableCell>
+                <TableCell>Статус</TableCell>
+                <TableCell>Приоритет</TableCell>
+                <TableCell>Плановое начало</TableCell>
+                <TableCell align="right">Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -175,14 +175,14 @@ export default function ProductionPage() {
                   <TableCell align="right">{order.quantity_completed}</TableCell>
                   <TableCell>
                     <Chip
-                      label={order.status.replace('_', ' ')}
+                      label={{ draft: 'Черновик', planned: 'Запланирован', released: 'Выпущен', in_progress: 'В работе', completed: 'Завершён', cancelled: 'Отменён' }[order.status] || order.status}
                       color={getStatusColor(order.status) as any}
                       size="small"
                     />
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={order.priority}
+                      label={{ urgent: 'Срочный', high: 'Высокий', medium: 'Средний', low: 'Низкий' }[order.priority] || order.priority}
                       color={order.priority === 'urgent' ? 'error' : 'default'}
                       size="small"
                     />
@@ -220,7 +220,7 @@ export default function ProductionPage() {
               {filteredOrders.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    No production orders found
+                    Производственные заказы не найдены
                   </TableCell>
                 </TableRow>
               )}

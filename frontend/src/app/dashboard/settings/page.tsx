@@ -6,15 +6,15 @@ export default function SettingsPage() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Tenant Settings
+        Настройки тенанта
       </Typography>
       <Card>
         <CardContent>
           <Typography variant="body1">
-            Tenant configuration settings - Coming Soon
+            Настройки тенанта готовятся
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            This page will allow you to configure tenant-specific settings, preferences, and integrations.
+            Здесь можно будет настроить параметры, предпочтения и интеграции тенанта.
           </Typography>
         </CardContent>
       </Card>

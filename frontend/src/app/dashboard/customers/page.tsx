@@ -6,15 +6,15 @@ export default function CustomersPage() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Customers Management
+        Управление клиентами
       </Typography>
       <Card>
         <CardContent>
           <Typography variant="body1">
-            Customer management module - Coming Soon
+            Модуль управления клиентами готовится
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            This page will allow you to manage customer accounts, contacts, and relationships.
+            Здесь будут доступны счета клиентов, контактные лица и история взаимодействия.
           </Typography>
         </CardContent>
       </Card>

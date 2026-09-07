@@ -69,7 +69,7 @@ export default function EmployeesPage() {
       setEmployees(empRes.data || []);
       setDepartments(deptRes.data || []);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('Не удалось загрузить данные:', error);
     } finally {
       setLoading(false);
     }
@@ -119,17 +119,17 @@ export default function EmployeesPage() {
       handleCloseDialog();
       loadData();
     } catch (error) {
-      console.error('Failed to save employee:', error);
+      console.error('Не удалось сохранить сотрудника:', error);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm('Are you sure you want to delete this employee?')) {
+    if (confirm('Удалить этого сотрудника?')) {
       try {
         await hrApi.deleteEmployee(id);
         loadData();
       } catch (error) {
-        console.error('Failed to delete employee:', error);
+        console.error('Не удалось удалить сотрудника:', error);
       }
     }
   };
@@ -146,7 +146,7 @@ export default function EmployeesPage() {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
-          Employees
+          Сотрудники
         </Typography>
         <Button
           variant="contained"
@@ -154,7 +154,7 @@ export default function EmployeesPage() {
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Add Employee
+          Добавить сотрудника
         </Button>
       </Box>
 
@@ -163,14 +163,14 @@ export default function EmployeesPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Code</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Position</TableCell>
-                <TableCell>Department</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>Код</TableCell>
+                <TableCell>ФИО</TableCell>
+                <TableCell>Должность</TableCell>
+                <TableCell>Подразделение</TableCell>
+                <TableCell>Электронная почта</TableCell>
+                <TableCell>Телефон</TableCell>
+                <TableCell>Статус</TableCell>
+                <TableCell align="right">Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -188,7 +188,7 @@ export default function EmployeesPage() {
                   <TableCell>{employee.phone || '-'}</TableCell>
                   <TableCell>
                     <Chip
-                      label={employee.is_active ? 'Active' : 'Inactive'}
+                      label={employee.is_active ? 'Активен' : 'Неактивен'}
                       color={employee.is_active ? 'success' : 'default'}
                       size="small"
                     />
@@ -206,7 +206,7 @@ export default function EmployeesPage() {
               {employees.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    No employees found
+                    Сотрудники не найдены
                   </TableCell>
                 </TableRow>
               )}
@@ -217,14 +217,14 @@ export default function EmployeesPage() {
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingEmployee ? 'Edit Employee' : 'Add Employee'}
+          {editingEmployee ? 'Редактирование сотрудника' : 'Новый сотрудник'}
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Employee Code"
+                label="Код сотрудника"
                 value={formData.employee_code}
                 onChange={(e) => setFormData({ ...formData, employee_code: e.target.value })}
                 required
@@ -233,7 +233,7 @@ export default function EmployeesPage() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Position"
+                label="Должность"
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
               />
@@ -241,7 +241,7 @@ export default function EmployeesPage() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="First Name"
+                label="Имя"
                 value={formData.first_name}
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                 required
@@ -250,7 +250,7 @@ export default function EmployeesPage() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Last Name"
+                label="Фамилия"
                 value={formData.last_name}
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                 required
@@ -259,7 +259,7 @@ export default function EmployeesPage() {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Middle Name"
+                label="Отчество"
                 value={formData.middle_name}
                 onChange={(e) => setFormData({ ...formData, middle_name: e.target.value })}
               />
@@ -267,7 +267,7 @@ export default function EmployeesPage() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Email"
+                label="Электронная почта"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -276,7 +276,7 @@ export default function EmployeesPage() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Phone"
+                label="Телефон"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -285,11 +285,11 @@ export default function EmployeesPage() {
               <TextField
                 fullWidth
                 select
-                label="Department"
+                label="Подразделение"
                 value={formData.department_id}
                 onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
               >
-                <MenuItem value="">No Department</MenuItem>
+                <MenuItem value="">Без подразделения</MenuItem>
                 {departments.map((dept) => (
                   <MenuItem key={dept.id} value={dept.id}>
                     {dept.name}
@@ -300,9 +300,9 @@ export default function EmployeesPage() {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>Отмена</Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
-            Save
+            Сохранить
           </Button>
         </DialogActions>
       </Dialog>

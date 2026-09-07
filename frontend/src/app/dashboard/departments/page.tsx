@@ -48,7 +48,7 @@ export default function DepartmentsPage() {
       const res = await hrApi.getDepartments();
       setDepartments(res.data || []);
     } catch (error) {
-      console.error('Failed to load departments:', error);
+      console.error('Не удалось загрузить подразделения:', error);
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function DepartmentsPage() {
       handleCloseDialog();
       loadData();
     } catch (error) {
-      console.error('Failed to save department:', error);
+      console.error('Не удалось сохранить подразделение:', error);
     }
   };
 
@@ -100,7 +100,7 @@ export default function DepartmentsPage() {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
-          Departments
+          Подразделения
         </Typography>
         <Button
           variant="contained"
@@ -108,7 +108,7 @@ export default function DepartmentsPage() {
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Add Department
+          Добавить подразделение
         </Button>
       </Box>
 
@@ -117,11 +117,11 @@ export default function DepartmentsPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Code</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>Код</TableCell>
+                <TableCell>Наименование</TableCell>
+                <TableCell>Описание</TableCell>
+                <TableCell>Статус</TableCell>
+                <TableCell align="right">Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -132,7 +132,7 @@ export default function DepartmentsPage() {
                   <TableCell>{dept.description || '-'}</TableCell>
                   <TableCell>
                     <Chip
-                      label={dept.is_active ? 'Active' : 'Inactive'}
+                      label={dept.is_active ? 'Активно' : 'Неактивно'}
                       color={dept.is_active ? 'success' : 'default'}
                       size="small"
                     />
@@ -150,7 +150,7 @@ export default function DepartmentsPage() {
               {departments.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} align="center">
-                    No departments found
+                    Подразделения не найдены
                   </TableCell>
                 </TableRow>
               )}
@@ -161,14 +161,14 @@ export default function DepartmentsPage() {
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingDept ? 'Edit Department' : 'Add Department'}
+          {editingDept ? 'Редактирование подразделения' : 'Новое подразделение'}
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Code"
+                label="Код"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 required
@@ -177,7 +177,7 @@ export default function DepartmentsPage() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Name"
+                label="Наименование"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
@@ -186,7 +186,7 @@ export default function DepartmentsPage() {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Description"
+                label="Описание"
                 multiline
                 rows={3}
                 value={formData.description}
@@ -196,9 +196,9 @@ export default function DepartmentsPage() {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>Отмена</Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
-            Save
+            Сохранить
           </Button>
         </DialogActions>
       </Dialog>

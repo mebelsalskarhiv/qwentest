@@ -51,7 +51,7 @@ export default function InventoryPage() {
       setItems(data);
       setError(null);
     } catch (err) {
-      setError('Failed to load inventory items');
+      setError('Не удалось загрузить складские позиции');
       console.error(err);
     } finally {
       setLoading(false);
@@ -100,39 +100,39 @@ export default function InventoryPage() {
       handleCloseDialog();
       loadItems();
     } catch (err) {
-      setError(editingItem ? 'Failed to update item' : 'Failed to create item');
+      setError(editingItem ? 'Не удалось обновить позицию' : 'Не удалось создать позицию');
       console.error(err);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+    if (!confirm('Удалить эту позицию?')) return;
     
     try {
       await inventoryApi.deleteItem(id);
       loadItems();
     } catch (err) {
-      setError('Failed to delete item');
+      setError('Не удалось удалить позицию');
       console.error(err);
     }
   };
 
   if (loading) {
-    return <Box sx={{ p: 3 }}><Typography>Loading...</Typography></Box>;
+    return <Box sx={{ p: 3 }}><Typography>Загрузка...</Typography></Box>;
   }
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Inventory Management
+          Управление складом
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Add Item
+          Добавить позицию
         </Button>
       </Box>
 
@@ -147,13 +147,13 @@ export default function InventoryPage() {
           <TableHead>
             <TableRow>
               <TableCell>SKU</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>On Hand</TableCell>
-              <TableCell>Reorder Point</TableCell>
-              <TableCell>Unit Cost</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Наименование</TableCell>
+              <TableCell>Категория</TableCell>
+              <TableCell>На складе</TableCell>
+              <TableCell>Точка заказа</TableCell>
+              <TableCell>Цена за единицу</TableCell>
+              <TableCell>Статус</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -161,13 +161,13 @@ export default function InventoryPage() {
               <TableRow key={item.id}>
                 <TableCell>{item.sku}</TableCell>
                 <TableCell>{item.name}</TableCell>
-                <TableCell>{item.category?.name || 'N/A'}</TableCell>
+                <TableCell>{item.category?.name || 'Нет данных'}</TableCell>
                 <TableCell>{item.quantity_on_hand}</TableCell>
                 <TableCell>{item.reorder_point}</TableCell>
                 <TableCell>${Number(item.unit_cost).toFixed(2)}</TableCell>
                 <TableCell>
                   <Chip
-                    label={item.quantity_on_hand <= item.reorder_point ? 'Low Stock' : 'In Stock'}
+                    label={item.quantity_on_hand <= item.reorder_point ? 'Низкий остаток' : 'В наличии'}
                     color={item.quantity_on_hand <= item.reorder_point ? 'warning' : 'success'}
                     size="small"
                   />
@@ -185,7 +185,7 @@ export default function InventoryPage() {
             {items.length === 0 && (
               <TableRow>
                 <TableCell colSpan={8} align="center">
-                  No inventory items found
+                  Складские позиции не найдены
                 </TableCell>
               </TableRow>
             )}
@@ -195,7 +195,7 @@ export default function InventoryPage() {
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingItem ? 'Edit Item' : 'Add New Item'}
+          {editingItem ? 'Редактирование позиции' : 'Новая складская позиция'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -207,14 +207,14 @@ export default function InventoryPage() {
               required
             />
             <TextField
-              label="Name"
+              label="Наименование"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               fullWidth
               required
             />
             <TextField
-              label="Description"
+              label="Описание"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               fullWidth
@@ -222,27 +222,27 @@ export default function InventoryPage() {
               rows={2}
             />
             <TextField
-              label="Unit of Measure"
+              label="Единица измерения"
               value={formData.unit_of_measure}
               onChange={(e) => setFormData({ ...formData, unit_of_measure: e.target.value })}
               fullWidth
             />
             <TextField
-              label="Quantity on Hand"
+              label="Количество на складе"
               type="number"
               value={formData.quantity_on_hand}
               onChange={(e) => setFormData({ ...formData, quantity_on_hand: parseInt(e.target.value) || 0 })}
               fullWidth
             />
             <TextField
-              label="Reorder Point"
+              label="Точка заказа"
               type="number"
               value={formData.reorder_point}
               onChange={(e) => setFormData({ ...formData, reorder_point: parseInt(e.target.value) || 0 })}
               fullWidth
             />
             <TextField
-              label="Unit Cost"
+              label="Цена за единицу"
               type="number"
               value={formData.unit_cost}
               onChange={(e) => setFormData({ ...formData, unit_cost: parseFloat(e.target.value) || 0 })}
@@ -252,9 +252,9 @@ export default function InventoryPage() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>Отмена</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingItem ? 'Update' : 'Create'}
+            {editingItem ? 'Сохранить' : 'Создать'}
           </Button>
         </DialogActions>
       </Dialog>

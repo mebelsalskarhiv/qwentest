@@ -22,11 +22,11 @@ interface ProductionOrder {
 }
 
 const COLUMNS = [
-  { id: 'draft', title: 'Draft', color: '#9e9e9e' },
-  { id: 'planned', title: 'Planned', color: '#2196f3' },
-  { id: 'released', title: 'Released', color: '#ff9800' },
-  { id: 'in_progress', title: 'In Progress', color: '#9c27b0' },
-  { id: 'completed', title: 'Completed', color: '#4caf50' },
+  { id: 'draft', title: 'Черновики', color: '#9e9e9e' },
+  { id: 'planned', title: 'Запланированы', color: '#2196f3' },
+  { id: 'released', title: 'Выпущены', color: '#ff9800' },
+  { id: 'in_progress', title: 'В работе', color: '#9c27b0' },
+  { id: 'completed', title: 'Завершены', color: '#4caf50' },
 ];
 
 export default function KanbanPage() {
@@ -57,7 +57,7 @@ export default function KanbanPage() {
       
       setOrders(grouped);
     } catch (error) {
-      console.error('Failed to load orders:', error);
+      console.error('Не удалось загрузить заказы:', error);
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,7 @@ export default function KanbanPage() {
       await productionApi.updateOrder(draggedOrder.id, updateData);
       loadData();
     } catch (error) {
-      console.error('Failed to update order status:', error);
+      console.error('Не удалось изменить статус заказа:', error);
     } finally {
       setDraggedOrder(null);
     }
@@ -109,10 +109,10 @@ export default function KanbanPage() {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Production Kanban
+        Канбан производства
       </Typography>
       <Typography variant="body2" color="textSecondary" paragraph>
-        Drag and drop cards between columns to change order status
+        Перетаскивайте карточки между колонками, чтобы изменить статус заказа
       </Typography>
 
       <Grid container spacing={2} sx={{ height: 'calc(100vh - 200px)' }}>
@@ -156,15 +156,15 @@ export default function KanbanPage() {
                         <Typography variant="subtitle2" fontWeight="bold">
                           {order.order_number}
                         </Typography>
-                        <Tooltip title="Drag to move">
+                        <Tooltip title="Перетащить">
                           <DragIndicatorIcon fontSize="small" color="action" />
                         </Tooltip>
                       </Box>
                       <Typography variant="body2" color="textSecondary" gutterBottom>
-                        Qty: {order.quantity_completed}/{order.quantity_planned}
+                        Количество: {order.quantity_completed}/{order.quantity_planned}
                       </Typography>
                       <Chip
-                        label={order.priority}
+                        label={{ urgent: 'Срочный', high: 'Высокий', medium: 'Средний', low: 'Низкий' }[order.priority] || order.priority}
                         color={getPriorityColor(order.priority) as any}
                         size="small"
                       />
