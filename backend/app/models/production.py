@@ -27,6 +27,7 @@ class ProductionOrder(Base):
     __tablename__ = "production_orders"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     order_number = Column(String(50), unique=True, index=True, nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     quantity_planned = Column(Float, nullable=False)
@@ -58,6 +59,7 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     sku = Column(String(100), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
@@ -81,6 +83,7 @@ class WorkCenter(Base):
     __tablename__ = "work_centers"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     code = Column(String(50), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
@@ -100,6 +103,7 @@ class ProductionOperation(Base):
     __tablename__ = "production_operations"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     production_order_id = Column(Integer, ForeignKey("production_orders.id"), nullable=False)
     operation_number = Column(Integer, nullable=False)
     work_center_id = Column(Integer, ForeignKey("work_centers.id"))
@@ -127,6 +131,7 @@ class BillOfMaterial(Base):
     __tablename__ = "bill_of_materials"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     component_id = Column(Integer, ForeignKey("inventory_items.id"), nullable=False)
     quantity = Column(Float, nullable=False)
@@ -144,6 +149,7 @@ class MaterialConsumption(Base):
     __tablename__ = "material_consumptions"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     production_order_id = Column(Integer, ForeignKey("production_orders.id"), nullable=False)
     item_id = Column(Integer, ForeignKey("inventory_items.id"), nullable=False)
     quantity_planned = Column(Float, nullable=False)

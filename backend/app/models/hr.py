@@ -9,6 +9,7 @@ class Employee(Base):
     __tablename__ = "employees"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     employee_code = Column(String(50), unique=True, index=True, nullable=False)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
@@ -33,6 +34,7 @@ class Department(Base):
     __tablename__ = "departments"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     code = Column(String(50), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
@@ -52,6 +54,7 @@ class Customer(Base):
     __tablename__ = "customers"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     code = Column(String(50), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     contact_person = Column(String(255))
@@ -70,6 +73,7 @@ class Station(Base):
     __tablename__ = "stations"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     code = Column(String(50), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)

@@ -42,6 +42,7 @@ async def seed_demo_data() -> None:
                 name=f"Демо: {name}",
                 description=description,
                 is_active=True,
+                tenant_id=tenant.id,
             )
             session.add(category)
             await session.flush()
@@ -54,6 +55,7 @@ async def seed_demo_data() -> None:
             email="demo-supplier@example.com",
             phone="+7 495 000-00-01",
             is_active=True,
+            tenant_id=tenant.id,
         )
         session.add(supplier)
         await session.flush()
@@ -84,6 +86,7 @@ async def seed_demo_data() -> None:
                 location=f"Склад А-{index + 1:02d}",
                 barcode=f"46000000000{index + 1}",
                 is_active=True,
+                tenant_id=tenant.id,
             ))
 
         departments = []
@@ -92,7 +95,7 @@ async def seed_demo_data() -> None:
             ("DEMO-ASM", "Сборочный участок"),
             ("DEMO-QC", "Отдел контроля качества"),
         ]:
-            department = Department(code=code, name=name, description="Демо-подразделение", is_active=True)
+            department = Department(code=code, name=name, description="Демо-подразделение", is_active=True, tenant_id=tenant.id)
             session.add(department)
             await session.flush()
             departments.append(department)
@@ -112,11 +115,12 @@ async def seed_demo_data() -> None:
                 phone=f"+7 495 000-00-1{index}",
                 hire_date=datetime.utcnow() - timedelta(days=180 + index * 45),
                 is_active=True,
+                tenant_id=tenant.id,
             ))
 
         session.add_all([
-            Customer(code="DEMO-CUS-001", name="ООО Промтех", contact_person="Олег Орлов", email="sales@promtech.example", is_active=True),
-            Customer(code="DEMO-CUS-002", name="Завод Север", contact_person="Елена Крылова", email="orders@sever.example", is_active=True),
+            Customer(code="DEMO-CUS-001", name="ООО Промтех", contact_person="Олег Орлов", email="sales@promtech.example", is_active=True, tenant_id=tenant.id),
+            Customer(code="DEMO-CUS-002", name="Завод Север", contact_person="Елена Крылова", email="orders@sever.example", is_active=True, tenant_id=tenant.id),
         ])
 
         work_centers = []
@@ -125,15 +129,15 @@ async def seed_demo_data() -> None:
             ("DEMO-WC-02", "Гибка металла", 12),
             ("DEMO-WC-03", "Сборка изделий", 20),
         ]:
-            work_center = WorkCenter(code=code, name=name, description="Демо-рабочий центр", capacity=capacity, efficiency=0.92, is_active=True)
+            work_center = WorkCenter(code=code, name=name, description="Демо-рабочий центр", capacity=capacity, efficiency=0.92, is_active=True, tenant_id=tenant.id)
             session.add(work_center)
             await session.flush()
             work_centers.append(work_center)
 
         session.add_all([
-            Station(code="DEMO-ST-01", name="Лазерный станок L-01", description="Демо-станция раскроя", work_center_id=work_centers[0].id, delivery_mode="mounted", ip_address="192.168.10.21", status="online", is_active=True),
-            Station(code="DEMO-ST-02", name="Гибочный пресс G-01", description="Демо-станция гибки", work_center_id=work_centers[1].id, delivery_mode="smb", ip_address="192.168.10.22", status="maintenance", is_active=True),
-            Station(code="DEMO-ST-03", name="Сборочный пост S-01", description="Демо-сборочная станция", work_center_id=work_centers[2].id, delivery_mode="mounted", ip_address="192.168.10.23", status="online", is_active=True),
+            Station(code="DEMO-ST-01", name="Лазерный станок L-01", description="Демо-станция раскроя", work_center_id=work_centers[0].id, delivery_mode="mounted", ip_address="192.168.10.21", status="online", is_active=True, tenant_id=tenant.id),
+            Station(code="DEMO-ST-02", name="Гибочный пресс G-01", description="Демо-станция гибки", work_center_id=work_centers[1].id, delivery_mode="smb", ip_address="192.168.10.22", status="maintenance", is_active=True, tenant_id=tenant.id),
+            Station(code="DEMO-ST-03", name="Сборочный пост S-01", description="Демо-сборочная станция", work_center_id=work_centers[2].id, delivery_mode="mounted", ip_address="192.168.10.23", status="online", is_active=True, tenant_id=tenant.id),
         ])
 
         products = []
@@ -142,7 +146,7 @@ async def seed_demo_data() -> None:
             ("DEMO-PRD-002", "Монтажная панель M200", 28500),
             ("DEMO-PRD-003", "Защитный кожух K300", 19800),
         ]:
-            product = Product(sku=sku, name=name, description="Демо-изделие Virtuoso MES", category="Металлоконструкции", unit_of_measure="шт", standard_cost=price * 0.62, selling_price=price, lead_time_days=7, is_active=True)
+            product = Product(sku=sku, name=name, description="Демо-изделие Virtuoso MES", category="Металлоконструкции", unit_of_measure="шт", standard_cost=price * 0.62, selling_price=price, lead_time_days=7, is_active=True, tenant_id=tenant.id)
             session.add(product)
             await session.flush()
             products.append(product)
@@ -166,6 +170,7 @@ async def seed_demo_data() -> None:
                 scheduled_end=datetime.utcnow() + timedelta(days=5),
                 notes="Демо-заказ для презентации системы",
                 is_active=True,
+                tenant_id=tenant.id,
             ))
 
         await session.commit()

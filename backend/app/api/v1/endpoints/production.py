@@ -17,7 +17,8 @@ from app.models.production import (
     ProductionOrderStatus
 )
 from app.models.user import User
-from app.services.auth import get_current_user
+from app.models.enums import Permission
+from app.services.auth import require_permission
 
 router = APIRouter(prefix="/production", tags=["Production"])
 
@@ -28,10 +29,13 @@ async def get_production_orders(
     limit: int = 100,
     status_filter: str = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get all production orders."""
-    query = select(ProductionOrder).where(ProductionOrder.is_active == True)
+    query = select(ProductionOrder).where(
+        ProductionOrder.is_active == True,
+        ProductionOrder.tenant_id == current_user.tenant_id,
+    )
     
     if status_filter:
         query = query.where(ProductionOrder.status == status_filter)
@@ -45,11 +49,14 @@ async def get_production_orders(
 async def get_production_order(
     order_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get production order by ID."""
     result = await db.execute(
-        select(ProductionOrder).where(ProductionOrder.id == order_id)
+        select(ProductionOrder).where(
+            ProductionOrder.id == order_id,
+            ProductionOrder.tenant_id == current_user.tenant_id,
+        )
     )
     order = result.scalar_one_or_none()
     
@@ -66,12 +73,15 @@ async def get_production_order(
 async def create_production_order(
     order_data: ProductionOrderCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_CREATE))
 ):
     """Create new production order."""
     # Check if order number exists
     result = await db.execute(
-        select(ProductionOrder).where(ProductionOrder.order_number == order_data.order_number)
+        select(ProductionOrder).where(
+            ProductionOrder.order_number == order_data.order_number,
+            ProductionOrder.tenant_id == current_user.tenant_id,
+        )
     )
     existing = result.scalar_one_or_none()
     
@@ -84,7 +94,8 @@ async def create_production_order(
     order = ProductionOrder(
         **order_data.model_dump(),
         created_by=current_user.id,
-        status=ProductionOrderStatus.DRAFT
+        status=ProductionOrderStatus.DRAFT,
+        tenant_id=current_user.tenant_id,
     )
     
     db.add(order)
@@ -99,11 +110,14 @@ async def update_production_order(
     order_id: int,
     order_data: ProductionOrderUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_UPDATE))
 ):
     """Update production order."""
     result = await db.execute(
-        select(ProductionOrder).where(ProductionOrder.id == order_id)
+        select(ProductionOrder).where(
+            ProductionOrder.id == order_id,
+            ProductionOrder.tenant_id == current_user.tenant_id,
+        )
     )
     order = result.scalar_one_or_none()
     
@@ -127,11 +141,14 @@ async def update_production_order(
 async def start_production_order(
     order_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_UPDATE))
 ):
     """Start production order."""
     result = await db.execute(
-        select(ProductionOrder).where(ProductionOrder.id == order_id)
+        select(ProductionOrder).where(
+            ProductionOrder.id == order_id,
+            ProductionOrder.tenant_id == current_user.tenant_id,
+        )
     )
     order = result.scalar_one_or_none()
     
@@ -155,11 +172,14 @@ async def complete_production_order(
     order_id: int,
     quantity_completed: float,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_UPDATE))
 ):
     """Complete production order."""
     result = await db.execute(
-        select(ProductionOrder).where(ProductionOrder.id == order_id)
+        select(ProductionOrder).where(
+            ProductionOrder.id == order_id,
+            ProductionOrder.tenant_id == current_user.tenant_id,
+        )
     )
     order = result.scalar_one_or_none()
     
@@ -182,10 +202,15 @@ async def complete_production_order(
 @router.get("/products", response_model=List[ProductResponse])
 async def get_products(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get all products."""
-    result = await db.execute(select(Product).where(Product.is_active == True))
+    result = await db.execute(
+        select(Product).where(
+            Product.is_active == True,
+            Product.tenant_id == current_user.tenant_id,
+        )
+    )
     return result.scalars().all()
 
 
@@ -193,10 +218,10 @@ async def get_products(
 async def create_product(
     product_data: ProductCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_CREATE))
 ):
     """Create new product."""
-    product = Product(**product_data.model_dump())
+    product = Product(**product_data.model_dump(), tenant_id=current_user.tenant_id)
     db.add(product)
     await db.flush()
     await db.refresh(product)
@@ -206,10 +231,15 @@ async def create_product(
 @router.get("/work-centers", response_model=List[WorkCenterResponse])
 async def get_work_centers(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get all work centers."""
-    result = await db.execute(select(WorkCenter).where(WorkCenter.is_active == True))
+    result = await db.execute(
+        select(WorkCenter).where(
+            WorkCenter.is_active == True,
+            WorkCenter.tenant_id == current_user.tenant_id,
+        )
+    )
     return result.scalars().all()
 
 
@@ -217,10 +247,12 @@ async def get_work_centers(
 async def create_work_center(
     work_center_data: WorkCenterCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_CREATE))
 ):
     """Create new work center."""
-    work_center = WorkCenter(**work_center_data.model_dump())
+    work_center = WorkCenter(
+        **work_center_data.model_dump(), tenant_id=current_user.tenant_id
+    )
     db.add(work_center)
     await db.flush()
     await db.refresh(work_center)
@@ -231,12 +263,15 @@ async def create_work_center(
 async def get_production_operations(
     order_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get operations for production order."""
     result = await db.execute(
         select(ProductionOperation)
-        .where(ProductionOperation.production_order_id == order_id)
+        .where(
+            ProductionOperation.production_order_id == order_id,
+            ProductionOperation.tenant_id == current_user.tenant_id,
+        )
         .order_by(ProductionOperation.operation_number)
     )
     return result.scalars().all()
@@ -247,10 +282,12 @@ async def create_production_operation(
     order_id: int,
     operation_data: ProductionOperationCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_CREATE))
 ):
     """Create production operation."""
-    operation = ProductionOperation(**operation_data.model_dump())
+    operation = ProductionOperation(
+        **operation_data.model_dump(), tenant_id=current_user.tenant_id
+    )
     db.add(operation)
     await db.flush()
     await db.refresh(operation)
@@ -261,12 +298,15 @@ async def create_production_operation(
 async def get_bill_of_materials(
     product_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_READ))
 ):
     """Get bill of materials for product."""
     result = await db.execute(
         select(BillOfMaterial)
-        .where(BillOfMaterial.product_id == product_id)
+        .where(
+            BillOfMaterial.product_id == product_id,
+            BillOfMaterial.tenant_id == current_user.tenant_id,
+        )
         .where(BillOfMaterial.is_active == True)
     )
     return result.scalars().all()
@@ -277,10 +317,14 @@ async def add_bill_of_material(
     product_id: int,
     bom_data: BillOfMaterialCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.PRODUCTION_CREATE))
 ):
     """Add bill of material to product."""
-    bom = BillOfMaterial(product_id=product_id, **bom_data.model_dump())
+    bom = BillOfMaterial(
+        product_id=product_id,
+        **bom_data.model_dump(),
+        tenant_id=current_user.tenant_id,
+    )
     db.add(bom)
     await db.flush()
     await db.refresh(bom)

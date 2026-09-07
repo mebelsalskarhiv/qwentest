@@ -23,10 +23,37 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def override_get_db():
+class AsyncSessionCompat:
+    """Minimal async-compatible wrapper for the sync SQLAlchemy session used by older tests."""
+    def __init__(self, session):
+        self._session = session
+
+    async def execute(self, *args, **kwargs):
+        return self._session.execute(*args, **kwargs)
+
+    async def commit(self):
+        return self._session.commit()
+
+    async def flush(self):
+        return self._session.flush()
+
+    async def refresh(self, instance, *args, **kwargs):
+        return self._session.refresh(instance, *args, **kwargs)
+
+    async def close(self):
+        return self._session.close()
+
+    def add(self, instance):
+        return self._session.add(instance)
+
+    def __getattr__(self, name):
+        return getattr(self._session, name)
+
+
+async def override_get_db():
     try:
         db = TestingSessionLocal()
-        yield db
+        yield AsyncSessionCompat(db)
     finally:
         db.close()
 

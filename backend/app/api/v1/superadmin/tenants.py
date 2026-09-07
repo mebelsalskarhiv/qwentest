@@ -252,7 +252,7 @@ async def update_tenant(
     return TenantResponse.from_orm(tenant)
 
 
-@router.delete("/{tenant_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{tenant_id}", response_model=TenantResponse)
 async def delete_tenant(
     tenant_id: str,
     soft_delete: bool = True,
@@ -267,16 +267,16 @@ async def delete_tenant(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tenant not found"
         )
-    
+
     if soft_delete:
         tenant.status = TenantStatus.SUSPENDED
         await db.commit()
-    else:
-        # Hard delete - cascade will handle related records
-        await db.delete(tenant)
-        await db.commit()
-    
-    return None
+        await db.refresh(tenant)
+        return TenantResponse.from_orm(tenant)
+
+    await db.delete(tenant)
+    await db.commit()
+    return TenantResponse.from_orm(tenant)
 
 
 @router.put("/{tenant_id}/billing", response_model=TenantResponse)

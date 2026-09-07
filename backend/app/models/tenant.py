@@ -62,28 +62,30 @@ class Tenant(Base):
     
     def __repr__(self):
         return f"<Tenant {self.name} ({self.subdomain})>"
-    
+
+    @property
+    def base_domain(self) -> str:
+        return "virtuoso-mes.local"
+
     @property
     def primary_domain(self) -> str:
         """Returns the primary domain (subdomain or custom)"""
         return self.custom_domain if self.custom_domain else f"{self.subdomain}.{self.base_domain}"
-    
+
     @property
     def is_trial_expired(self) -> bool:
         if not self.trial_ends_at:
             return False
-        return datetime.utcnow() > self.trial_ends_at
-    
+        return datetime.utcnow() >= self.trial_ends_at
+
     @property
     def is_subscription_expired(self) -> bool:
         if not self.subscription_expires_at:
             return False
         return datetime.utcnow() > self.subscription_expires_at
-    
+
     @property
     def is_active(self) -> bool:
-        return (
-            self.status == TenantStatus.ACTIVE and
-            not self.is_trial_expired and
-            not self.is_subscription_expired
-        )
+        if self.status not in {TenantStatus.ACTIVE, TenantStatus.TRIAL}:
+            return False
+        return not self.is_trial_expired and not self.is_subscription_expired

@@ -5,6 +5,7 @@ import pytest
 import asyncio
 from typing import AsyncGenerator
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from app.core.config import settings
 from app.core.database import get_db
@@ -23,7 +24,28 @@ from app.models.hr import Employee, Department, Customer, Station
 from app.core.database import Base
 
 # Test database URL
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/virtuoso_mes_test"
+TEST_DATABASE_NAME = "virtuoso_mes_test"
+TEST_DATABASE_URL = f"postgresql+asyncpg://postgres:postgres@localhost:5432/{TEST_DATABASE_NAME}"
+
+# Ensure the test database exists before creating the engine when Postgres is available.
+# This is intentionally non-fatal so SQLite-based unit tests can run in local environments
+# without a running Postgres container.
+async def _ensure_test_database() -> None:
+    try:
+        admin_engine = create_async_engine("postgresql+asyncpg://postgres:postgres@localhost:5432/postgres", echo=False)
+        conn = await admin_engine.connect()
+        try:
+            await conn.execution_options(isolation_level="AUTOCOMMIT")
+            result = await conn.execute(text("SELECT 1 FROM pg_database WHERE datname = :name"), {"name": TEST_DATABASE_NAME})
+            if result.scalar() is None:
+                await conn.execute(text(f'CREATE DATABASE "{TEST_DATABASE_NAME}"'))
+        finally:
+            await conn.close()
+        await admin_engine.dispose()
+    except Exception:
+        return
+
+asyncio.run(_ensure_test_database())
 
 # Create test engine
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)

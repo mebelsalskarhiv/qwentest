@@ -19,6 +19,7 @@ class InventoryItem(Base):
     __tablename__ = "inventory_items"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     sku = Column(String(100), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
@@ -52,6 +53,7 @@ class InventoryCategory(Base):
     __tablename__ = "inventory_categories"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     name = Column(String(100), unique=True, index=True, nullable=False)
     description = Column(Text)
     parent_id = Column(Integer, ForeignKey("inventory_categories.id"))
@@ -68,6 +70,7 @@ class StockMovement(Base):
     __tablename__ = "stock_movements"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     item_id = Column(Integer, ForeignKey("inventory_items.id"), nullable=False)
     movement_type = Column(String(50), nullable=False)  # IN, OUT, ADJUSTMENT, TRANSFER
     quantity = Column(Float, nullable=False)
@@ -88,6 +91,7 @@ class Supplier(Base):
     __tablename__ = "suppliers"
 
     id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
     name = Column(String(255), nullable=False)
     code = Column(String(50), unique=True, index=True)
     contact_person = Column(String(255))

@@ -11,7 +11,8 @@ from app.schemas.inventory import (
 )
 from app.models.inventory import InventoryItem, StockMovement, InventoryCategory, Supplier
 from app.models.user import User
-from app.services.auth import get_current_user
+from app.models.enums import Permission
+from app.services.auth import require_permission
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
@@ -22,10 +23,13 @@ async def get_inventory_items(
     limit: int = 100,
     category_id: int = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_READ))
 ):
     """Get all inventory items."""
-    query = select(InventoryItem).where(InventoryItem.is_active == True)
+    query = select(InventoryItem).where(
+        InventoryItem.is_active == True,
+        InventoryItem.tenant_id == current_user.tenant_id,
+    )
     
     if category_id:
         query = query.where(InventoryItem.category_id == category_id)
@@ -40,11 +44,14 @@ async def get_inventory_items(
 async def get_inventory_item(
     item_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_READ))
 ):
     """Get inventory item by ID."""
     result = await db.execute(
-        select(InventoryItem).where(InventoryItem.id == item_id)
+        select(InventoryItem).where(
+            InventoryItem.id == item_id,
+            InventoryItem.tenant_id == current_user.tenant_id,
+        )
     )
     item = result.scalar_one_or_none()
     
@@ -61,12 +68,15 @@ async def get_inventory_item(
 async def create_inventory_item(
     item_data: InventoryItemCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_CREATE))
 ):
     """Create new inventory item."""
     # Check if SKU exists
     result = await db.execute(
-        select(InventoryItem).where(InventoryItem.sku == item_data.sku)
+        select(InventoryItem).where(
+            InventoryItem.sku == item_data.sku,
+            InventoryItem.tenant_id == current_user.tenant_id,
+        )
     )
     existing = result.scalar_one_or_none()
     
@@ -76,7 +86,7 @@ async def create_inventory_item(
             detail="SKU already exists"
         )
     
-    item = InventoryItem(**item_data.model_dump())
+    item = InventoryItem(**item_data.model_dump(), tenant_id=current_user.tenant_id)
     item.available_stock = item.current_stock - item.reserved_stock
     
     db.add(item)
@@ -91,11 +101,14 @@ async def update_inventory_item(
     item_id: int,
     item_data: InventoryItemUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_UPDATE))
 ):
     """Update inventory item."""
     result = await db.execute(
-        select(InventoryItem).where(InventoryItem.id == item_id)
+        select(InventoryItem).where(
+            InventoryItem.id == item_id,
+            InventoryItem.tenant_id == current_user.tenant_id,
+        )
     )
     item = result.scalar_one_or_none()
     
@@ -123,12 +136,15 @@ async def create_stock_movement(
     item_id: int,
     movement_data: StockMovementCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_UPDATE))
 ):
     """Create stock movement."""
     # Verify item exists
     result = await db.execute(
-        select(InventoryItem).where(InventoryItem.id == item_id)
+        select(InventoryItem).where(
+            InventoryItem.id == item_id,
+            InventoryItem.tenant_id == current_user.tenant_id,
+        )
     )
     item = result.scalar_one_or_none()
     
@@ -141,6 +157,7 @@ async def create_stock_movement(
     # Create movement
     movement = StockMovement(
         **movement_data.model_dump(),
+        tenant_id=current_user.tenant_id,
         performed_by=current_user.id
     )
     
@@ -162,10 +179,14 @@ async def create_stock_movement(
 @router.get("/categories", response_model=List[InventoryCategoryResponse])
 async def get_categories(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_READ))
 ):
     """Get all inventory categories."""
-    result = await db.execute(select(InventoryCategory))
+    result = await db.execute(
+        select(InventoryCategory).where(
+            InventoryCategory.tenant_id == current_user.tenant_id
+        )
+    )
     return result.scalars().all()
 
 
@@ -173,10 +194,12 @@ async def get_categories(
 async def create_category(
     category_data: InventoryCategoryCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_CREATE))
 ):
     """Create inventory category."""
-    category = InventoryCategory(**category_data.model_dump())
+    category = InventoryCategory(
+        **category_data.model_dump(), tenant_id=current_user.tenant_id
+    )
     db.add(category)
     await db.flush()
     await db.refresh(category)
@@ -186,10 +209,15 @@ async def create_category(
 @router.get("/suppliers", response_model=List[SupplierResponse])
 async def get_suppliers(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_READ))
 ):
     """Get all suppliers."""
-    result = await db.execute(select(Supplier).where(Supplier.is_active == True))
+    result = await db.execute(
+        select(Supplier).where(
+            Supplier.is_active == True,
+            Supplier.tenant_id == current_user.tenant_id,
+        )
+    )
     return result.scalars().all()
 
 
@@ -197,10 +225,10 @@ async def get_suppliers(
 async def create_supplier(
     supplier_data: SupplierCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission(Permission.INVENTORY_CREATE))
 ):
     """Create supplier."""
-    supplier = Supplier(**supplier_data.model_dump())
+    supplier = Supplier(**supplier_data.model_dump(), tenant_id=current_user.tenant_id)
     db.add(supplier)
     await db.flush()
     await db.refresh(supplier)
