@@ -106,3 +106,6 @@ WorkCenter.stations = relationship("Station", back_populates="work_center")
 # Add relationship to User (commented out for Phase 1 to avoid circular dependency issues)
 # from app.models.user import User
 # User.employee = relationship("Employee", back_populates="user", uselist=False)
+
+# Add relationships for ResourceCalendar
+from app.models.inventory import ResourceCalendar, ResourceCalendarType
