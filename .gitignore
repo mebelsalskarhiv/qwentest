@@ -22,13 +22,10 @@ venv/
 *.swo
 *.tmp
 
-# Coverage
-.coverage
-coverage/
-htmlcov/
-
 # Build
 dist/
 build/
-target/
+.coverage
+htmlcov/
+.coverage.*
 ```
