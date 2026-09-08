@@ -88,6 +88,7 @@ class ProductionOrder(Base):
     operations = relationship("ProductionOperation", back_populates="production_order")
     material_consumptions = relationship("MaterialConsumption", back_populates="production_order")
     work_orders = relationship("WorkOrder", back_populates="production_order", cascade="all, delete-orphan")
+    material_reservations = relationship("MaterialReservation", back_populates="production_order")
 
 
 class WorkOrder(Base):
@@ -122,6 +123,7 @@ class WorkOrder(Base):
     assigned_user = relationship("User", back_populates="work_orders")
     stages = relationship("ProductionStage", back_populates="work_order", cascade="all, delete-orphan")
     comments = relationship("WorkOrderComment", back_populates="work_order", cascade="all, delete-orphan")
+    material_reservations = relationship("MaterialReservation", back_populates="work_order")
 
 
 class ProductionStage(Base):

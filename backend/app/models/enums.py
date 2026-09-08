@@ -28,12 +28,20 @@ class Permission(str, Enum):
     PRODUCTION_CREATE = "production:create"
     PRODUCTION_UPDATE = "production:update"
     PRODUCTION_DELETE = "production:delete"
+    WORK_ORDER_READ = "work_order:read"
+    WORK_ORDER_CREATE = "work_order:create"
+    WORK_ORDER_UPDATE = "work_order:update"
+    WORK_ORDER_DELETE = "work_order:delete"
     
     # Inventory
     INVENTORY_READ = "inventory:read"
     INVENTORY_CREATE = "inventory:create"
     INVENTORY_UPDATE = "inventory:update"
     INVENTORY_DELETE = "inventory:delete"
+    MATERIAL_RESERVATION_READ = "material_reservation:read"
+    MATERIAL_RESERVATION_CREATE = "material_reservation:create"
+    MATERIAL_RESERVATION_UPDATE = "material_reservation:update"
+    MATERIAL_RESERVATION_DELETE = "material_reservation:delete"
     
     # Quality
     QUALITY_READ = "quality:read"

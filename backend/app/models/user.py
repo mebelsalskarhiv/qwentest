@@ -28,6 +28,10 @@ class User(Base):
     # Relationships
     audit_logs = relationship("AuditLog", back_populates="user")
     production_orders = relationship("ProductionOrder", back_populates="created_by_user")
+    work_orders = relationship("WorkOrder", back_populates="assigned_user")
+    requested_reservations = relationship("MaterialReservation", foreign_keys="MaterialReservation.requested_by", back_populates="requested_by_user")
+    allocated_reservations = relationship("MaterialReservation", foreign_keys="MaterialReservation.allocated_by", back_populates="allocated_by_user")
+    created_exceptions = relationship("CalendarException", back_populates="creator")
     # quality_checks = relationship("QualityCheck", back_populates="inspector_user")  # TODO: Add QualityCheck model in Phase 3
     tenant = relationship("Tenant", back_populates="users", foreign_keys=[tenant_id])
 

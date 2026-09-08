@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float, Boolean, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float, Boolean, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
@@ -12,6 +12,35 @@ class InventoryItemType(str, Enum):
     FINISHED_GOOD = "finished_good"
     TOOL = "tool"
     CONSUMABLE = "consumable"
+
+
+class MaterialReservationStatus(str, Enum):
+    """Status of material reservation."""
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    PARTIALLY_ALLOCATED = "partially_allocated"
+    ALLOCATED = "allocated"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class ResourceCalendarType(str, Enum):
+    """Type of resource calendar."""
+    WORK_CENTER = "work_center"
+    STATION = "station"
+    EMPLOYEE = "employee"
+    TOOL = "tool"
+
+
+class DayOfWeek(str, Enum):
+    """Days of the week."""
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+    SUNDAY = "sunday"
 
 
 class InventoryItem(Base):
@@ -107,3 +136,83 @@ class Supplier(Base):
 
     # Relationships
     items = relationship("InventoryItem", back_populates="supplier")
+
+
+class MaterialReservation(Base):
+    """Material reservation for production orders and work orders."""
+    __tablename__ = "material_reservations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
+    reservation_number = Column(String(50), unique=True, index=True, nullable=False)
+    item_id = Column(Integer, ForeignKey("inventory_items.id"), nullable=False)
+    work_order_id = Column(Integer, ForeignKey("work_orders.id"), nullable=True)
+    production_order_id = Column(Integer, ForeignKey("production_orders.id"), nullable=True)
+    quantity_requested = Column(Float, nullable=False)
+    quantity_allocated = Column(Float, default=0)
+    quantity_issued = Column(Float, default=0)
+    unit_of_measure = Column(String(50), nullable=False)
+    status = Column(SQLEnum(MaterialReservationStatus), default=MaterialReservationStatus.PENDING, nullable=False)
+    requested_by = Column(Integer, ForeignKey("users.id"))
+    allocated_by = Column(Integer, ForeignKey("users.id"))
+    issued_by = Column(Integer, ForeignKey("users.id"))
+    requested_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    allocated_at = Column(DateTime(timezone=True))
+    expires_at = Column(DateTime(timezone=True))
+    notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    item = relationship("InventoryItem", back_populates="reservations")
+    work_order = relationship("WorkOrder", back_populates="material_reservations")
+    production_order = relationship("ProductionOrder", back_populates="material_reservations")
+    requested_by_user = relationship("User", foreign_keys=[requested_by], back_populates="requested_reservations")
+    allocated_by_user = relationship("User", foreign_keys=[allocated_by], back_populates="allocated_reservations")
+
+
+class ResourceCalendar(Base):
+    """Resource calendar for work centers, stations, and employees."""
+    __tablename__ = "resource_calendars"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
+    resource_type = Column(SQLEnum(ResourceCalendarType), nullable=False)
+    resource_id = Column(Integer, nullable=False)  # work_center_id, station_id, employee_id
+    day_of_week = Column(SQLEnum(DayOfWeek), nullable=False)
+    start_time = Column(String(8), nullable=False)  # HH:MM format
+    end_time = Column(String(8), nullable=False)  # HH:MM format
+    is_working_day = Column(Boolean, default=True, nullable=False)
+    capacity_hours = Column(Float, default=8.0)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    __table_args__ = (
+        UniqueConstraint('tenant_id', 'resource_type', 'resource_id', 'day_of_week', name='uq_resource_calendar'),
+    )
+
+
+class CalendarException(Base):
+    """Exceptions to regular calendar (holidays, overtime, maintenance)."""
+    __tablename__ = "calendar_exceptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
+    resource_type = Column(SQLEnum(ResourceCalendarType), nullable=False)
+    resource_id = Column(Integer, nullable=False)
+    exception_date = Column(DateTime(timezone=True), nullable=False)
+    exception_type = Column(String(50), nullable=False)  # holiday, overtime, maintenance
+    start_time = Column(String(8))  # HH:MM format, optional
+    end_time = Column(String(8))  # HH:MM format, optional
+    capacity_hours = Column(Float)  # Override capacity
+    description = Column(Text)
+    created_by = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    creator = relationship("User", back_populates="created_exceptions")
+
+
+# Add relationships to InventoryItem
+InventoryItem.reservations = relationship("MaterialReservation", back_populates="item")
