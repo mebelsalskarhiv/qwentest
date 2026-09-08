@@ -164,6 +164,7 @@ class ProductionStage(Base):
     operator = relationship("User", foreign_keys=[operator_id], back_populates="operated_stages")
     quality_checker = relationship("User", foreign_keys=[quality_checked_by], back_populates="checked_stages")
     timeline_events = relationship("StageTimelineEvent", back_populates="stage", cascade="all, delete-orphan")
+    inspection_records = relationship("QualityInspectionRecord", back_populates="production_stage", cascade="all, delete-orphan")
 
 
 class StageTypeDefinition(Base):
@@ -179,6 +180,9 @@ class StageTypeDefinition(Base):
     requires_quality_check = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationship to quality control points
+    control_points = relationship("QualityControlPoint", back_populates="stage_type", cascade="all, delete-orphan")
 
 
 class WorkOrderComment(Base):
