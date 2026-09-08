@@ -98,14 +98,17 @@ class Station(Base):
 # Add relationship to WorkCenter
 from app.models.production import WorkCenter
 WorkCenter.stations = relationship("Station", back_populates="work_center")
+WorkCenter.shift_assignments = relationship("WorkCenterShiftAssignment", back_populates="work_center")
+
+# Add relationships for User calendar events
+from app.models.user import User
+User.created_calendar_events = relationship("ResourceCalendar", foreign_keys="ResourceCalendar.created_by", back_populates="creator")
+User.approved_calendar_events = relationship("ResourceCalendar", foreign_keys="ResourceCalendar.approved_by", back_populates="approver")
+User.created_exceptions = relationship("CalendarException", back_populates="creator")
 
 # Add relationship to ProductionOperation (commented out for Phase 1 to avoid circular dependency)
 # from app.models.production import ProductionOperation
 # ProductionOperation.operator = relationship("Employee", back_populates="production_operations")
 
 # Add relationship to User (commented out for Phase 1 to avoid circular dependency issues)
-# from app.models.user import User
 # User.employee = relationship("Employee", back_populates="user", uselist=False)
-
-# Add relationships for ResourceCalendar
-from app.models.inventory import ResourceCalendar, ResourceCalendarType

@@ -323,3 +323,11 @@ class MaterialConsumption(Base):
 
     # Relationships
     production_order = relationship("ProductionOrder", back_populates="material_consumptions")
+
+
+# Add relationships for WorkCenter
+from app.models.hr import Station
+WorkCenter.stations = relationship("Station", back_populates="work_center")
+WorkCenter.shift_assignments = relationship("WorkCenterShiftAssignment", back_populates="work_center")
+WorkCenter.stages = relationship("ProductionStage", back_populates="work_center")
+WorkCenter.work_orders = relationship("WorkOrder", back_populates="work_center")

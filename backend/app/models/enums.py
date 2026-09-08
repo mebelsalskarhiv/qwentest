@@ -32,6 +32,10 @@ class Permission(str, Enum):
     WORK_ORDER_CREATE = "work_order:create"
     WORK_ORDER_UPDATE = "work_order:update"
     WORK_ORDER_DELETE = "work_order:delete"
+    STAGE_READ = "stage:read"
+    STAGE_CREATE = "stage:create"
+    STAGE_UPDATE = "stage:update"
+    STAGE_DELETE = "stage:delete"
     
     # Inventory
     INVENTORY_READ = "inventory:read"
@@ -42,6 +46,14 @@ class Permission(str, Enum):
     MATERIAL_RESERVATION_CREATE = "material_reservation:create"
     MATERIAL_RESERVATION_UPDATE = "material_reservation:update"
     MATERIAL_RESERVATION_DELETE = "material_reservation:delete"
+    
+    # Planning & Calendars
+    PLANNING_READ = "planning:read"
+    PLANNING_CREATE = "planning:create"
+    PLANNING_UPDATE = "planning:update"
+    CALENDAR_READ = "calendar:read"
+    CALENDAR_CREATE = "calendar:create"
+    CALENDAR_UPDATE = "calendar:update"
     
     # Quality
     QUALITY_READ = "quality:read"
