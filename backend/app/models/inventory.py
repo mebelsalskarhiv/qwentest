@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float, Boolean, Enum as SQLEnum, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float, Boolean, Enum as SQLEnum, UniqueConstraint, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
@@ -216,3 +216,50 @@ class CalendarException(Base):
 
 # Add relationships to InventoryItem
 InventoryItem.reservations = relationship("MaterialReservation", back_populates="item")
+
+
+class WorkShift(Base):
+    """Standard work shift definitions."""
+    __tablename__ = "work_shifts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
+    
+    name = Column(String(100), nullable=False)
+    code = Column(String(50), unique=True, index=True, nullable=False)
+    description = Column(Text)
+    
+    # Shift times
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+    
+    # Working days
+    monday = Column(Boolean, default=True)
+    tuesday = Column(Boolean, default=True)
+    wednesday = Column(Boolean, default=True)
+    thursday = Column(Boolean, default=True)
+    friday = Column(Boolean, default=True)
+    saturday = Column(Boolean, default=False)
+    sunday = Column(Boolean, default=False)
+    
+    # Capacity
+    hours_per_day = Column(Float, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class Holiday(Base):
+    """Company holidays affecting all resources."""
+    __tablename__ = "holidays"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=True, index=True)
+    
+    name = Column(String(255), nullable=False)
+    date = Column(DateTime(timezone=True), nullable=False)
+    is_paid = Column(Boolean, default=True)
+    description = Column(Text)
+    
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
