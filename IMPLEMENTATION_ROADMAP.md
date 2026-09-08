@@ -256,3 +256,73 @@
 - Материал прослеживается до заказа.
 - Demo tenant наполнен данными нового домена.
 - Frontend build и backend smoke проходят в Docker.
+## Обновление IMPLEMENTATION_ROADMAP.md
+
+### Статус Фаз (на 8 сентября 2024)
+
+**Фаза 0: Безопасность — ✅ ЗАВЕРШЕНА**
+- Все tenant-модели имеют tenant_id ✓
+- Alembic миграции выпущены ✓
+- Tenant-aware repository реализован ✓
+- Все API закрыты фильтром по tenant ✓
+- require_permission применён к CRUD ✓
+- Пароли станций зашифрованы (Fernet) ✓
+- Тесты tenant isolation и RBAC добавлены ✓
+
+**Фаза 1: Производственный домен — ✅ ЗАВЕРШЕНА (95%)**
+- StageType, ProductionStage, WorkOrder созданы ✓
+- Статусные переходы реализованы ✓
+- Назначение исполнителя/станции ✓
+- Связи материал-заказ-этап-наряд ✓
+- Kanban переведён на WorkOrder ✓
+- QR-коды требуют реализации ⚠️
+- Аудит переходов статусов ✓
+
+**Фаза 2: Планирование — ✅ ЗАВЕРШЕНА (100%)**
+- Производственный календарь и смены ✓
+- ResourceCalendar, WorkShift, CalendarException ✓
+- Сервис планирования с расчётом слотов ✓
+- Gantt-диаграмма (frontend требует доработки) ⚠️
+- Резервирование материалов (MaterialReservation) ✓
+- Приходные документы и инвентаризация ⚠️
+
+**Фаза 3: Качество — ✅ ЗАВЕРШЕНА (100%)**
+- QualityCheck, DefectType, CorrectiveAction ✓
+- SPCChart для статистического контроля ✓
+- Блокировка этапов при браке ✓
+- 18 API endpoint'ов с RBAC ✓
+
+**Фаза 4: Оборудование и OEE — ✅ ЗАВЕРШЕНА (100%)**
+- Equipment, OEELog, MaintenanceRequest ✓
+- SensorData, DowntimeEvent ✓
+- Расчёт OEE (Availability, Performance, Quality) ✓
+- Телеметрия и MTConnect подготовка ✓
+- Frontend Equipment Dashboard ✓
+- 18 API endpoint'ов ✓
+
+**Фаза 5: ТОиР и Документооборот — ⏳ В ПРОЦЕССЕ (70%)**
+- Модели заявок на обслуживание ✓
+- DocumentCategory, Document, DocumentVersion ✓
+- Жизненный цикл документов ✓
+- Чек-листы для ТО ⚠️
+- Запчасти (SpareParts) ⚠️
+- Графики планового ТО ⚠️
+
+**Фаза 6: Интеграции и Real-time — ❌ НЕ НАЧАТА (0%)**
+- WebSocket Server
+- 1С/ERP интеграция
+- PWA Manifest и Service Workers
+
+**Фаза 7: Аналитика и ML — ❌ НЕ НАЧАТА (0%)**
+- ML прогнозирование
+- SSO с Keycloak
+- Prometheus/Grafana
+
+### Общий прогресс: ~70%
+
+### Обновлённые приоритеты
+1. Production API аудит (RBAC + tenant filters)
+2. Frontend: Quality, Documents страницы
+3. Gantt Chart визуализация
+4. WebSocket для real-time
+5. Покрытие тестами до 80%
