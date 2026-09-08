@@ -77,6 +77,13 @@ class Permission(str, Enum):
     TELEMETRY_READ = "telemetry:read"
     TELEMETRY_WRITE = "telemetry:write"
     
+    # Documents
+    DOCUMENTS_READ = "documents:read"
+    DOCUMENTS_CREATE = "documents:create"
+    DOCUMENTS_UPDATE = "documents:update"
+    DOCUMENTS_DELETE = "documents:delete"
+    DOCUMENTS_APPROVE = "documents:approve"
+    
     # Reports
     REPORTS_READ = "reports:read"
     REPORTS_EXPORT = "reports:export"

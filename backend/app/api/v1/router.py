@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, inventory, production, hr, users, work_orders, equipment, planning, quality
+from app.api.v1.endpoints import auth, inventory, production, hr, users, work_orders, equipment, planning, quality, documents
 from app.api.v1.superadmin import tenants
 
 api_router = APIRouter()
@@ -13,4 +13,5 @@ api_router.include_router(work_orders.router)
 api_router.include_router(planning.router)
 api_router.include_router(quality.router)
 api_router.include_router(equipment.router)
+api_router.include_router(documents.router, prefix="/documents", tags=["documents"])
 api_router.include_router(tenants.router, prefix="/superadmin", tags=["superadmin"])
