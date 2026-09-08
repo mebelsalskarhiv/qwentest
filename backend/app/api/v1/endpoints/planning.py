@@ -5,10 +5,13 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
 
 from app.core.database import get_db
-from app.models.inventory import ResourceCalendar, CalendarException, WorkShift, ResourceCalendarType
+from app.models import inventory as models_inventory
+from app.models import production as models_production
+from app.models import user as models_user
+from app.models.inventory import ResourceCalendar, CalendarException, WorkShift, ResourceCalendarType, Holiday, DayOfWeek
 from app.models.production import WorkOrder
 from app.models.user import User
-from app.models.enums import Permission, DayOfWeek
+from app.models.enums import Permission
 from app.services.auth import get_current_user, require_permission
 
 router = APIRouter()
@@ -102,21 +105,21 @@ async def get_resource_availability(
 @router.post("/calendar/schedule", response_model=Dict[str, Any])
 async def calculate_schedule(
     work_order_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(require_permission(Permission.PLANNING_CREATE)),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.PLANNING_CREATE)),
 ) -> Dict[str, Any]:
     """
     Calculate optimal schedule for a work order based on resource availability.
     Considers work center calendars, stage dependencies, and durations.
     """
-    work_order = db.query(models.WorkOrder).filter(
+    work_order = db.query(WorkOrder).filter(
         and_(
-            models.WorkOrder.id == work_order_id,
-            models.WorkOrder.tenant_id == current_user.tenant_id
+            WorkOrder.id == work_order_id,
+            WorkOrder.tenant_id == current_user.tenant_id
         )
     ).options(
-        joinedload(models.WorkOrder.stages),
-        joinedload(models.WorkOrder.work_center)
+        joinedload(WorkOrder.stages),
+        joinedload(WorkOrder.work_center)
     ).first()
     
     if not work_order:
@@ -132,12 +135,12 @@ async def calculate_schedule(
         raise HTTPException(status_code=400, detail="Work order has no stages defined")
     
     # Get work center calendar
-    calendars = db.query(models.ResourceCalendar).filter(
+    calendars = db.query(ResourceCalendar).filter(
         and_(
-            models.ResourceCalendar.tenant_id == current_user.tenant_id,
-            models.ResourceCalendar.resource_type == models.ResourceCalendarType.WORK_CENTER,
-            models.ResourceCalendar.resource_id == work_order.work_center_id,
-            models.ResourceCalendar.is_active == True
+            ResourceCalendar.tenant_id == current_user.tenant_id,
+            ResourceCalendar.resource_type == ResourceCalendarType.WORK_CENTER,
+            ResourceCalendar.resource_id == work_order.work_center_id,
+            ResourceCalendar.is_active == True
         )
     ).all()
     
@@ -182,19 +185,19 @@ async def get_holidays(
     end_date: Optional[datetime] = Query(None, description="Filter by end date"),
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(require_permission(Permission.CALENDAR_READ)),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.CALENDAR_READ)),
 ) -> List[Dict[str, Any]]:
     """Get company holidays."""
-    query = db.query(models.Holiday).filter(
-        models.Holiday.tenant_id == current_user.tenant_id,
-        models.Holiday.is_active == True
+    query = db.query(Holiday).filter(
+        Holiday.tenant_id == current_user.tenant_id,
+        Holiday.is_active == True
     )
     
     if start_date:
-        query = query.filter(models.Holiday.date >= start_date)
+        query = query.filter(Holiday.date >= start_date)
     if end_date:
-        query = query.filter(models.Holiday.date <= end_date)
+        query = query.filter(Holiday.date <= end_date)
     
     holidays = query.offset(skip).limit(limit).all()
     
@@ -217,11 +220,11 @@ async def create_holiday(
     date: datetime,
     is_paid: bool = True,
     description: Optional[str] = None,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(require_permission(Permission.CALENDAR_CREATE)),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.CALENDAR_CREATE)),
 ) -> Dict[str, Any]:
     """Create a new holiday."""
-    holiday = models.Holiday(
+    holiday = Holiday(
         tenant_id=current_user.tenant_id,
         name=name,
         date=date,
@@ -246,14 +249,14 @@ async def create_holiday(
 async def get_work_shifts(
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(require_permission(Permission.CALENDAR_READ)),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.CALENDAR_READ)),
 ) -> List[Dict[str, Any]]:
     """Get all work shifts for the tenant."""
-    shifts = db.query(models.WorkShift).filter(
+    shifts = db.query(WorkShift).filter(
         and_(
-            models.WorkShift.tenant_id == current_user.tenant_id,
-            models.WorkShift.is_active == True
+            WorkShift.tenant_id == current_user.tenant_id,
+            WorkShift.is_active == True
         )
     ).offset(skip).limit(limit).all()
     
@@ -294,8 +297,8 @@ async def create_work_shift(
     friday: bool = True,
     saturday: bool = False,
     sunday: bool = False,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(require_permission(Permission.CALENDAR_CREATE)),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.CALENDAR_CREATE)),
 ) -> Dict[str, Any]:
     """Create a new work shift."""
     from datetime import time as dt_time
@@ -304,7 +307,7 @@ async def create_work_shift(
     start_parts = start_time.split(":")
     end_parts = end_time.split(":")
     
-    shift = models.WorkShift(
+    shift = WorkShift(
         tenant_id=current_user.tenant_id,
         name=name,
         code=code,
