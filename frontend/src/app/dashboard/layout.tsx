@@ -24,6 +24,9 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import LogoutIcon from '@mui/icons-material/Logout';
+import BuildIcon from '@mui/icons-material/Build';
+import QrCodeIcon from '@mui/icons-material/QrCode';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 const drawerWidth = 240;
 
@@ -31,6 +34,9 @@ const menuItems = [
   { text: 'Обзор', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Производство', icon: <FactoryIcon />, path: '/dashboard/production' },
   { text: 'Канбан', icon: <FactoryIcon />, path: '/dashboard/kanban' },
+  { text: 'Оборудование', icon: <BuildIcon />, path: '/dashboard/equipment' },
+  { text: 'Качество', icon: <QrCodeIcon />, path: '/dashboard/quality' },
+  { text: 'Документы', icon: <DescriptionIcon />, path: '/dashboard/documents' },
   { text: 'Склад', icon: <InventoryIcon />, path: '/dashboard/inventory' },
   { text: 'Сотрудники', icon: <SettingsIcon />, path: '/dashboard/employees' },
   { text: 'Подразделения', icon: <SettingsIcon />, path: '/dashboard/departments' },
