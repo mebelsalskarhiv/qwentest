@@ -67,6 +67,16 @@ class Permission(str, Enum):
     MAINTENANCE_UPDATE = "maintenance:update"
     MAINTENANCE_DELETE = "maintenance:delete"
     
+    # Equipment & OEE
+    EQUIPMENT_READ = "equipment:read"
+    EQUIPMENT_CREATE = "equipment:create"
+    EQUIPMENT_UPDATE = "equipment:update"
+    EQUIPMENT_DELETE = "equipment:delete"
+    OEE_READ = "oee:read"
+    OEE_MANAGE = "oee:manage"
+    TELEMETRY_READ = "telemetry:read"
+    TELEMETRY_WRITE = "telemetry:write"
+    
     # Reports
     REPORTS_READ = "reports:read"
     REPORTS_EXPORT = "reports:export"
