@@ -11,6 +11,14 @@ from app.models.production import (
 )
 from app.models.hr import Employee, Department, Customer, Station
 from app.models.tenant import Tenant, TenantStatus, BillingPlan
+from app.models.quality import (
+    QualityControlPoint, QualityInspectionRecord, QualityDefect, QualityCapaAction,
+    DefectSeverity, DefectType, CapaStatus, InspectionResult
+)
+from app.models.equipment import (
+    Equipment, OEELog, MaintenanceRequest, SensorData, DowntimeEvent,
+    EquipmentStatus, MaintenanceType
+)
 from app.models.enums import UserRole, Permission, ActionType
 
 __all__ = [
@@ -61,4 +69,23 @@ __all__ = [
     "Tenant",
     "TenantStatus",
     "BillingPlan",
+    
+    # Quality
+    "QualityControlPoint",
+    "QualityInspectionRecord",
+    "QualityDefect",
+    "QualityCapaAction",
+    "DefectSeverity",
+    "DefectType",
+    "CapaStatus",
+    "InspectionResult",
+    
+    # Equipment & OEE
+    "Equipment",
+    "OEELog",
+    "MaintenanceRequest",
+    "SensorData",
+    "DowntimeEvent",
+    "EquipmentStatus",
+    "MaintenanceType",
 ]
